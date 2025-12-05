@@ -382,6 +382,7 @@ app.get('/leituras', async (req, res) => {
         $('#sidebar, .sidebar, nav:not(.liturgia-nav)').remove();
         $('.wp-block-button').remove();
         $('[class*="wp-block-buttons"]').remove();
+        $('div.wp-block-template-part').remove();
 
         normalizeSpacing($);
 
@@ -433,6 +434,7 @@ app.get('/missa', async (req, res) => {
         $('#sidebar, .sidebar, nav:not(.liturgia-nav)').remove();
         $('.wp-block-button').remove();
         $('[class*="wp-block-buttons"]').remove();
+        $('div.wp-block-template-part').remove();
 
         normalizeSpacing($);
 
