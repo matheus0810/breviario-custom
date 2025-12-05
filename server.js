@@ -13,8 +13,7 @@ const HORA_OPTIONS = [
 
 const NAV_SECTIONS = [
     { id: 'liturgia', label: 'Liturgia das Horas', href: '/?tipo=laudes' },
-    { id: 'leituras', label: 'Leituras', href: '/leituras' },
-    { id: 'missa', label: 'Missa', href: '/missa' }
+    { id: 'leituras', label: 'Leituras', href: '/leituras' }
 ];
 
 const BASE_STYLES = `
@@ -437,7 +436,7 @@ app.get('/missa', async (req, res) => {
 
         normalizeSpacing($);
 
-        $('body').prepend(buildMainNav('missa'));
+        $('body').prepend(buildMainNav('leituras'));
         $('head').prepend(`
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
