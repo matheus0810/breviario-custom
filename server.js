@@ -5,6 +5,271 @@ const cheerio = require('cheerio');
 const app = express();
 const PORT = 3000;
 
+const HORA_OPTIONS = [
+    { tipo: 'laudes', label: 'Laudes', periodo: 'Manha' },
+    { tipo: 'vesperas', label: 'Vesperas', periodo: 'Tarde' },
+    { tipo: 'completas', label: 'Completas', periodo: 'Noite' }
+];
+
+const NAV_SECTIONS = [
+    { id: 'liturgia', label: 'Liturgia das Horas', href: '/?tipo=laudes' },
+    { id: 'leituras', label: 'Leituras', href: '/leituras' },
+    { id: 'missa', label: 'Missa', href: '/missa' }
+];
+
+const BASE_STYLES = `
+    :root {
+        --bg-color: #f6efe6;
+        --surface-color: #ffffff;
+        --border-color: #e4d8c6;
+        --text-color: #2c1f13;
+        --muted-color: #6b5a4a;
+        --accent-color: #8c5c2c;
+        --accent-light: #f4e1c1;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif !important;
+        background: var(--bg-color) !important;
+        color: var(--text-color) !important;
+        margin: 0;
+        padding: 0 0 48px;
+        line-height: 1.65 !important;
+    }
+
+    .main-nav {
+        background: var(--surface-color);
+        border-bottom: 1px solid var(--border-color);
+        padding: 16px 0;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+    }
+
+    .nav-container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 0 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .nav-brand {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-color);
+        text-decoration: none;
+    }
+
+    .nav-menu {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .nav-item {
+        padding: 8px 14px;
+        border-radius: 999px;
+        text-decoration: none;
+        color: var(--muted-color);
+        font-size: 0.95rem;
+        font-weight: 500;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .nav-item:hover {
+        border-color: var(--border-color);
+        color: var(--text-color);
+    }
+
+    .nav-item.active {
+        background: var(--accent-light);
+        border-color: var(--accent-color);
+        color: var(--accent-color);
+    }
+
+    .hours-selector {
+        background: #fffaf3;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .selector-container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 14px 20px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+    }
+
+    .hour-chip {
+        flex: 1;
+        min-width: 180px;
+        text-decoration: none;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 12px 16px;
+        color: var(--text-color);
+        background: var(--surface-color);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        transition: all 0.2s ease;
+    }
+
+    .hour-chip small {
+        color: var(--muted-color);
+        font-size: 0.8rem;
+    }
+
+    .hour-chip.active {
+        border-color: var(--accent-color);
+        background: var(--accent-light);
+        box-shadow: 0 6px 16px rgba(140, 92, 44, 0.15);
+    }
+
+    .wp-site-blocks,
+    main,
+    article,
+    .entry-content,
+    .content,
+    .inner-content,
+    #content {
+        width: min(900px, calc(100% - 32px)) !important;
+        margin: 24px auto !important;
+        padding: 32px !important;
+        background: var(--surface-color) !important;
+        border-radius: 18px !important;
+        box-shadow: 0 20px 45px rgba(44, 31, 19, 0.05) !important;
+        border: 1px solid rgba(228, 216, 198, 0.7) !important;
+    }
+
+    h1, h2, h3 {
+        color: var(--accent-color) !important;
+        margin: 1.8rem 0 0.8rem !important;
+        font-weight: 600 !important;
+        letter-spacing: -0.01em;
+    }
+
+    p, li, span, div {
+        font-size: 1.02rem !important;
+        line-height: 1.7 !important;
+        color: var(--text-color) !important;
+    }
+
+    p {
+        margin: 0 0 1rem !important;
+    }
+
+    p + p {
+        margin-top: 0;
+    }
+
+    ul, ol {
+        padding-left: 1.3rem !important;
+        margin-bottom: 1.2rem !important;
+    }
+
+    blockquote {
+        border-left: 3px solid var(--accent-color);
+        padding-left: 1rem;
+        margin: 1.5rem 0;
+        color: var(--muted-color);
+        background: rgba(244, 225, 193, 0.4);
+    }
+
+    img {
+        width: 100% !important;
+        height: auto !important;
+        border-radius: 12px;
+    }
+
+    @media (max-width: 640px) {
+        .nav-container {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .nav-menu {
+            width: 100%;
+            justify-content: space-between;
+        }
+
+        .selector-container {
+            flex-direction: column;
+        }
+
+        .hour-chip {
+            width: 100%;
+        }
+
+        .wp-site-blocks,
+        main,
+        article,
+        .entry-content,
+        .content,
+        .inner-content,
+        #content {
+            padding: 24px !important;
+            width: calc(100% - 24px) !important;
+        }
+    }
+`;
+
+function buildMainNav(activeSection = 'liturgia') {
+    const links = NAV_SECTIONS.map(section => `
+        <a href="${section.href}" class="nav-item ${section.id === activeSection ? 'active' : ''}">
+            ${section.label}
+        </a>
+    `).join('');
+
+    return `
+        <nav class="main-nav">
+            <div class="nav-container">
+                <a class="nav-brand" href="/">Liturgia Catolica</a>
+                <div class="nav-menu">
+                    ${links}
+                </div>
+            </div>
+        </nav>
+    `;
+}
+
+function buildHoursSelector(tipoAtivo = 'laudes') {
+    return `
+        <div class="hours-selector">
+            <div class="selector-container">
+                ${HORA_OPTIONS.map(option => `
+                    <a href="/?tipo=${option.tipo}" class="hour-chip ${option.tipo === tipoAtivo ? 'active' : ''}">
+                        <span>${option.label}</span>
+                        <small>${option.periodo}</small>
+                    </a>
+                `).join('')}
+            </div>
+        </div>
+    `;
+}
+
+function normalizeSpacing($) {
+    $('br + br').remove();
+
+    ['p', 'div'].forEach((selector) => {
+        $(selector).each(function() {
+            const text = $(this).text().replace(/\u00a0/g, '').trim();
+            if (!text && $(this).children().length === 0) {
+                $(this).remove();
+            }
+        });
+    });
+}
+
 // Servir arquivos estáticos
 app.use('/public', express.static('public'));
 
@@ -72,11 +337,114 @@ function gerarUrlLiturgia(tipoOracao, data = new Date()) {
 }
 
 // Rota principal - sempre liturgiadashoras.online
+// Rota para Leituras
+app.get('/leituras', async (req, res) => {
+    try {
+        const hoje = new Date();
+        const diaFormatado = hoje.toISOString().split('T')[0];
+        const targetUrl = `https://liturgiadashoras.online/${diaFormatado}/leituras/`;
+        
+        console.log(`Acessando Leituras: ${targetUrl}`);
+        
+        const response = await fetch(targetUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        let html = await response.text();
+        const $ = cheerio.load(html);
+        
+        // Limpar elementos desnecessários
+        $('script[src*="google"], script[src*="ads"], script[src*="analytics"]').remove();
+        $('.ads, .advertisement, [class*="ad-"], .banner, .popup').remove();
+        $('#sidebar, .sidebar, nav:not(.liturgia-nav)').remove();
+        $('.wp-block-button').remove();
+        $('[class*="wp-block-buttons"]').remove();
+
+        normalizeSpacing($);
+
+        $('body').prepend(buildMainNav('leituras'));
+        $('head').prepend(`
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Leituras do Dia</title>
+        `);
+        $('head').append(`<style>${BASE_STYLES}</style>`);
+        
+        res.send($.html());
+        
+    } catch (error) {
+        console.error('Erro ao carregar leituras:', error);
+        res.send(`
+            <h1>Erro</h1>
+            <p>Não foi possível carregar as leituras.</p>
+            <a href="/">Voltar</a>
+        `);
+    }
+});
+
+// Rota para Missa
+app.get('/missa', async (req, res) => {
+    try {
+        const hoje = new Date();
+        const diaFormatado = hoje.toISOString().split('T')[0];
+        const targetUrl = `https://liturgiadashoras.online/${diaFormatado}/missa/`;
+        
+        console.log(`Acessando Missa: ${targetUrl}`);
+        
+        const response = await fetch(targetUrl, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        let html = await response.text();
+        const $ = cheerio.load(html);
+        
+        // Limpar elementos desnecessários
+        $('script[src*="google"], script[src*="ads"], script[src*="analytics"]').remove();
+        $('.ads, .advertisement, [class*="ad-"], .banner, .popup').remove();
+        $('#sidebar, .sidebar, nav:not(.liturgia-nav)').remove();
+        $('.wp-block-button').remove();
+        $('[class*="wp-block-buttons"]').remove();
+
+        normalizeSpacing($);
+
+        $('body').prepend(buildMainNav('missa'));
+        $('head').prepend(`
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Missa do Dia</title>
+        `);
+        $('head').append(`<style>${BASE_STYLES}</style>`);
+        
+        res.send($.html());
+        
+    } catch (error) {
+        console.error('Erro ao carregar missa:', error);
+        res.send(`
+            <h1>Erro</h1>
+            <p>Não foi possível carregar a missa.</p>
+            <a href="/">Voltar</a>
+        `);
+    }
+});
+
 app.get('*', async (req, res) => {
     try {
         // Determinar tipo de oração
         const tipoOracao = req.query.tipo || 'laudes';
         const dataCustom = req.query.data ? new Date(req.query.data) : new Date();
+        const horaAtiva = HORA_OPTIONS.some(option => option.tipo === tipoOracao) ? tipoOracao : 'laudes';
         
         // Gerar URL baseada no calendário litúrgico
         const urlGerada = gerarUrlLiturgia(tipoOracao, dataCustom);
@@ -132,79 +500,20 @@ app.get('*', async (req, res) => {
                 }
             }
         });
+
+        normalizeSpacing($);
         
-        // Adicionar nossos estilos e funcionalidades
-        $('head').append(`
+        // Adicionar menu e seletor de horas
+        $('body').prepend(buildHoursSelector(horaAtiva));
+        $('body').prepend(buildMainNav('liturgia'));
+        
+        $('head').prepend(`
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <title>Liturgia das Horas</title>
-            <style>
-                /* Reset */
-                * { box-sizing: border-box; }
-                
-                /* Body */
-                body {
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif !important;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
-                    background-attachment: fixed !important;
-                    margin: 0 !important;
-                    padding: 30px 15px 30px 15px !important;
-                    line-height: 1.6 !important;
-                    color: #2d2d2d !important;
-                }
-                
-                /* Container principal */
-                .wp-site-blocks,
-                main,
-                article,
-                .entry-content,
-                .content {
-                    max-width: 800px !important;
-                    margin: 0 auto !important;
-                    padding: 30px 40px !important;
-                    background: rgba(255, 255, 255, 0.95) !important;
-                    backdrop-filter: blur(10px) !important;
-                    border-radius: 15px !important;
-                    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1) !important;
-                    overflow-y: auto !important;
-                    height: auto !important;
-                }
-                
-                /* Títulos */
-                h1, h2, h3 {
-                    background: linear-gradient(45deg, #667eea, #dc2626) !important;
-                    -webkit-background-clip: text !important;
-                    -webkit-text-fill-color: transparent !important;
-                    background-clip: text !important;
-                    font-weight: 700 !important;
-                    margin: 20px 0 15px 0 !important;
-                    border-bottom: 2px solid rgba(220, 38, 38, 0.3) !important;
-                    padding-bottom: 8px !important;
-                }
-                
-                /* Texto */
-                p, div, span, font {
-                    color: #2d2d2d !important;
-                    line-height: 1.7 !important;
-                    margin-bottom: 1em !important;
-                    word-spacing: 0.05em !important;
-                }
-                
-                /* Mobile */
-                @media (max-width: 768px) {
-                    body { padding: 20px 10px 20px 10px !important; }
-                    .wp-site-blocks, main, article, .entry-content, .content {
-                        padding: 20px 15px !important;
-                        border-radius: 8px !important;
-                    }
-                }
-            </style>
         `);
-        
+        $('head').append(`<style>${BASE_STYLES}</style>`);
 
-        
-
-        
         res.send($.html());
         
     } catch (error) {
@@ -265,8 +574,12 @@ app.get('*', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-    console.log(`\n🙏 Liturgia das Horas rodando em: http://localhost:${PORT}`);
+    console.log(`\n🙏 Liturgia Católica rodando em: http://localhost:${PORT}`);
+    console.log(`\n📖 Liturgia das Horas:`);
     console.log(`   Laudes: http://localhost:${PORT}/?tipo=laudes`);
     console.log(`   Vésperas: http://localhost:${PORT}/?tipo=vesperas`);
-    console.log(`   Completas: http://localhost:${PORT}/?tipo=completas\n`);
+    console.log(`   Completas: http://localhost:${PORT}/?tipo=completas`);
+    console.log(`\n📚 Outras seções:`);
+    console.log(`   Leituras: http://localhost:${PORT}/leituras`);
+    console.log(`   Missa: http://localhost:${PORT}/missa\n`);
 });
