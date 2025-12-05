@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liturgia das Horas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header de Navegação -->
+    <header class="header" style="display: none;">
+        <div class="container">
+            <h1 class="logo">📖 Liturgia das Horas</h1>
+            <div class="header-info">
+                <span id="data-atual"></span>
+                <span id="tempo-liturgico"></span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Menu de Navegação -->
+    <nav class="nav-menu">
+        <div class="container">
+            <div class="nav-buttons">
+                <button class="nav-btn active" data-tipo="laudes">
+                    <span class="emoji">🌅</span>
+                    <span>Laudes</span>
+                    <small>Manhã</small>
+                </button>
+                <button class="nav-btn" data-tipo="vesperas">
+                    <span class="emoji">🌅</span>
+                    <span>Vésperas</span>
+                    <small>Tarde</small>
+                </button>
+                <button class="nav-btn" data-tipo="completas">
+                    <span class="emoji">🌙</span>
+                    <span>Completas</span>
+                    <small>Noite</small>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Loading -->
+    <div id="loading" class="loading">
+        <div class="loading-spinner"></div>
+        <p>Carregando liturgia...</p>
+    </div>
+
+    <!-- Conteúdo Principal -->
+    <main class="main-content">
+        <div class="container">
+            <article id="liturgia-container" class="liturgia-article">
+                <!-- Conteúdo será carregado via JavaScript -->
+            </article>
+        </div>
+    </main>
+
+    <!-- Erro -->
+    <div id="error-container" class="error-container" style="display: none;">
+        <div class="error-content">
+            <h2>⚠️ Oops!</h2>
+            <p id="error-message">Não foi possível carregar a liturgia.</p>
+            <button id="retry-btn" class="retry-btn">🔄 Tentar novamente</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer" style="display: none;">
+        <div class="container">
+            <p>Dados fornecidos por <a href="https://liturgiadashoras.online" target="_blank">liturgiadashoras.online</a></p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
