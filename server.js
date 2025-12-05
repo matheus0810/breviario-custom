@@ -323,6 +323,10 @@ function gerarUrlLiturgia(tipoOracao, data = new Date()) {
     const diaSemana = obterDiaDaSemana(data);
     const tempo = obterTempoLiturgico(data);
     const semana = obterSemanaDoTempo(data);
+
+    if (tipoOracao === 'completas') {
+        return `completas-de-${diaSemana}/`;
+    }
     
     // Formato: {tipo}-de-{dia}-da-{semana}-do-{tempo}
     let url = `${tipoOracao}-de-${diaSemana}-da-${semana}`;
