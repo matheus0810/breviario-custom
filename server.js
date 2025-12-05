@@ -563,6 +563,9 @@ br {
         
         // Remove espaços em branco excessivos
         $('br + br').remove();
+
+                // Altera o título da página para "breviario"
+        $('title').text('breviario');
         
         // Corrige TODOS os links para manter o idioma e passar pelo proxy
         $('a[href]').each((i, elem) => {
@@ -785,5 +788,6 @@ app.listen(PORT, () => {
     console.log(`   Inglês: http://localhost:${PORT}?lang=en`);
     console.log(`   Espanhol: http://localhost:${PORT}?lang=es\n`);
 });
+
 
 
