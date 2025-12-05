@@ -151,6 +151,16 @@ const BASE_STYLES = `
         border: 1px solid rgba(228, 216, 198, 0.7) !important;
     }
 
+    :is(.wp-site-blocks, main, article, .entry-content, .content, .inner-content, #content)
+        :is(.wp-site-blocks, main, article, .entry-content, .content, .inner-content, #content) {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        width: 100% !important;
+    }
+
     h1, h2, h3 {
         color: var(--accent-color) !important;
         margin: 1.8rem 0 0.8rem !important;
@@ -217,8 +227,12 @@ const BASE_STYLES = `
         .content,
         .inner-content,
         #content {
-            padding: 24px !important;
-            width: calc(100% - 24px) !important;
+            padding: 20px 18px !important;
+            width: 100% !important;
+            margin: 12px 0 !important;
+            border-radius: 12px !important;
+            border: none !important;
+            box-shadow: none !important;
         }
     }
 `;
