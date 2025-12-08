@@ -1046,6 +1046,41 @@ const BASE_STYLES = `
         gap: 12px;
     }
 
+    .liturgia-info-banner {
+        background: linear-gradient(135deg, #f4e1c1 0%, #e4d8c6 100%);
+        border-bottom: 2px solid var(--accent-color);
+        padding: 16px 20px;
+    }
+
+    .liturgia-info-container {
+        max-width: 960px;
+        margin: 0 auto;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 24px;
+        align-items: center;
+    }
+
+    .liturgia-info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .liturgia-info-label {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--muted-color);
+        font-weight: 600;
+    }
+
+    .liturgia-info-value {
+        font-size: 0.95rem;
+        color: var(--text-color);
+        font-weight: 500;
+    }
+
     .hour-chip {
         flex: 1;
         min-width: 180px;
@@ -1728,7 +1763,7 @@ function normalizarLiturgiaParaUrl(textoLiturgia) {
     return texto;
 }
 
-async function obterLiturgiaDoApiEGerarUrl(data = getTodayInSaoPaulo(), tipoOracao = 'laudes') {
+async function obterDadosLiturgiaAPI(data = getTodayInSaoPaulo()) {
     try {
         // Formatar data para API: DD/MM/YYYY
         const dia = String(data.getDate()).padStart(2, '0');
@@ -1745,14 +1780,34 @@ async function obterLiturgiaDoApiEGerarUrl(data = getTodayInSaoPaulo(), tipoOrac
         }
         
         const apiData = await response.json();
-        const liturgia = apiData.liturgia;
         
-        if (!liturgia) {
+        if (!apiData.liturgia) {
             console.log('✗ API não retornou campo "liturgia"');
             return null;
         }
         
-        console.log(`✓ Liturgia do dia: "${liturgia}"`);
+        console.log(`✓ Liturgia do dia: "${apiData.liturgia}"`);
+        
+        return {
+            data: apiData.data,
+            liturgia: apiData.liturgia,
+            cor: apiData.cor
+        };
+    } catch (err) {
+        console.error('Falha ao consultar API de liturgia:', err.message);
+        return null;
+    }
+}
+
+async function obterLiturgiaDoApiEGerarUrl(data = getTodayInSaoPaulo(), tipoOracao = 'laudes') {
+    try {
+        const dadosAPI = await obterDadosLiturgiaAPI(data);
+        
+        if (!dadosAPI) {
+            return null;
+        }
+        
+        const liturgia = dadosAPI.liturgia;
         
         // Se não é solenidade, festa ou memória especial, não gerar URL
         const textoLower = liturgia.toLowerCase();
@@ -2206,6 +2261,32 @@ app.get('*', async (req, res) => {
 
         normalizeSpacing($);
         
+        // Buscar dados da API de liturgia
+        const dadosLiturgia = await obterDadosLiturgiaAPI(dataCustom);
+        
+        // Adicionar banner com informações litúrgicas
+        if (dadosLiturgia) {
+            const bannerHTML = `
+                <div class="liturgia-info-banner">
+                    <div class="liturgia-info-container">
+                        <div class="liturgia-info-item">
+                            <span class="liturgia-info-label">Data:</span>
+                            <span class="liturgia-info-value">${dadosLiturgia.data}</span>
+                        </div>
+                        <div class="liturgia-info-item">
+                            <span class="liturgia-info-label">Dia Litúrgico:</span>
+                            <span class="liturgia-info-value">${dadosLiturgia.liturgia}</span>
+                        </div>
+                        <div class="liturgia-info-item">
+                            <span class="liturgia-info-label">Cor:</span>
+                            <span class="liturgia-info-value">${dadosLiturgia.cor}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            $('body').prepend(bannerHTML);
+        }
+        
         // Adicionar menu e seletor de horas
         $('body').prepend(buildHoursSelector(horaAtiva));
         $('body').prepend(buildMainNav('liturgia'));
@@ -2213,7 +2294,8 @@ app.get('*', async (req, res) => {
         $('head').prepend(`
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Liturgia das Horas</title>
+            <link rel="icon" href="data:,">
+            <title>Breviário</title>
         `);
         $('head').append(`<style>${BASE_STYLES}</style>`);
 
