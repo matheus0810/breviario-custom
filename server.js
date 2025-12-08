@@ -1224,6 +1224,7 @@ app.get('/leituras', (req, res) => {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link rel="icon" href="data:,">
             <title>Liturgia Diária</title>
             <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
             <style>
@@ -1422,6 +1423,7 @@ app.get('/missa', (req, res) => {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <link rel="icon" href="data:,">
             <title>Ritos Iniciais</title>
             <style>
                 ${BASE_STYLES}
@@ -2105,6 +2107,7 @@ app.get('*', async (req, res) => {
                 <head>
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <link rel="icon" href="data:,">
                     <title>Invitatório - Liturgia das Horas</title>
                 </head>
                 <body>
