@@ -2118,11 +2118,18 @@ app.get('*', async (req, res) => {
                 </html>
             `);
             
+            // Remover todas as tags de favicon/ícones
+            $('link[rel="icon"]').remove();
+            $('link[rel="shortcut icon"]').remove();
+            $('link[rel="apple-touch-icon"]').remove();
+            $('link[rel="apple-touch-icon-precomposed"]').remove();
+            
             $('body').prepend(buildHoursSelector(horaAtiva));
             $('body').prepend(buildMainNav('liturgia'));
             $('head').prepend(`
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <link rel="icon" href="data:,">
                 <title>Invitatório - Liturgia das Horas</title>
             `);
             $('head').append(`<style>${BASE_STYLES}</style>`);
@@ -2263,6 +2270,12 @@ app.get('*', async (req, res) => {
         });
 
         normalizeSpacing($);
+        
+        // Remover todas as tags de favicon/ícones do site original
+        $('link[rel="icon"]').remove();
+        $('link[rel="shortcut icon"]').remove();
+        $('link[rel="apple-touch-icon"]').remove();
+        $('link[rel="apple-touch-icon-precomposed"]').remove();
         
         // Buscar dados da API de liturgia
         const dadosLiturgia = await obterDadosLiturgiaAPI(dataCustom);
