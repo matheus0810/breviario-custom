@@ -985,15 +985,14 @@ router.get('/', async (req, res) => {
                 .wp-site-blocks, .entry-content, .liturgia-info-container { max-width: 980px; margin: 0 auto; }
                 .wp-site-blocks { box-sizing: border-box; }
             </style>`);
-            // Garantir que não haja duplicatas e inserir na ordem: banner -> nav -> hours
+            // Garantir que não haja duplicatas e inserir na ordem: nav -> banner -> hours
             $('body').find('.liturgia-info-banner, .main-nav, .hours-selector').remove();
+            $('body').prepend(buildMainNav('liturgia'));
             if (bannerHTML) {
-                $('body').prepend(bannerHTML);
-                $('.liturgia-info-banner').after(buildMainNav('liturgia'));
-                $('.main-nav').after(buildHoursSelector(horaAtiva));
+                $('.main-nav').after(bannerHTML);
+                $('.liturgia-info-banner').after(buildHoursSelector(horaAtiva));
             } else {
                 // Se não houver banner, apenas garantir nav + hours no topo
-                $('body').prepend(buildMainNav('liturgia'));
                 $('.main-nav').after(buildHoursSelector(horaAtiva));
             }
 
@@ -1159,11 +1158,13 @@ router.get('/', async (req, res) => {
         $('link[rel="apple-touch-icon"]').remove();
         $('link[rel="apple-touch-icon-precomposed"]').remove();
         
-        // Adicionar menu e seletor de horas; depois prepend do banner (para ficar no topo)
-        $('body').prepend(buildHoursSelector(horaAtiva));
+        // Adicionar na ordem correta: nav -> banner -> hours
         $('body').prepend(buildMainNav('liturgia'));
         if (bannerHTML) {
-            $('body').prepend(bannerHTML);
+            $('.main-nav').after(bannerHTML);
+            $('.liturgia-info-banner').after(buildHoursSelector(horaAtiva));
+        } else {
+            $('.main-nav').after(buildHoursSelector(horaAtiva));
         }
         
         $('head').prepend(`
