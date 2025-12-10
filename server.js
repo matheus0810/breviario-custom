@@ -6,238 +6,29 @@ const path = require('path');
 
 const app = express();
 const PORT = 3000;
-const SAO_PAULO_TZ = 'America/Sao_Paulo';
-const CALENDARIO_URL = 'https://liturgiadashoras.online/calendario/';
-const BASE_SITE_URL = 'https://liturgiadashoras.online/';
-const FIXED_DATE_LINKS = {};
+
+// Importar routers
+const leiturasRouter = require('./leituras');
+const missaRouter = require('./missa');
+const liturgiaRouter = require('./liturgia');
+const oracoesRouter = require('./oracoes');
+
+// Servir arquivos estáticos
+app.use('/public', express.static('public'));
+
+// Usar routers
+app.use('/leituras', leiturasRouter);
+app.use('/missa', missaRouter);
+app.use('/oracoes', oracoesRouter);
+app.use('/', liturgiaRouter);
 
 const NAV_SECTIONS = [
     { id: 'liturgia', label: 'Liturgia das Horas', href: '/?tipo=laudes' },
     { id: 'leituras', label: 'Leituras', href: '/leituras' },
-    { id: 'missa', label: 'Missa', href: '/missa' }
+    { id: 'missa', label: 'Missa', href: '/missa' },
+    { id: 'oracoes', label: 'Orações e Formação', href: '/oracoes' }
 ];
 
-const HORA_OPTIONS = [
-    { tipo: 'invitatorio', label: 'Invitatório', periodo: 'Início' },
-    { tipo: 'laudes', label: 'Laudes', periodo: 'Manhã' },
-    { tipo: 'vesperas', label: 'Vésperas', periodo: 'Tarde' },
-    { tipo: 'completas', label: 'Completas', periodo: 'Noite' }
-];
-
-const INVITATORIO_CONTENT = `
-<h2>Invitatório</h2>
-
-<p>O Invitatório tem seu lugar no início da oração cotidiana, ou seja, antepõe-se ao Ofício das Leituras, ou às Laudes, conforme se comece o dia por uma ou por outra ação litúrgica.</p>
-
-<p>V. Abri os meus lábios, ó Senhor.<br>
-R. E minha boca anunciará vosso louvor.</p>
-
-<p>Em seguida diz-se o Salmo 94(95) com sua antífona, em forma responsorial. Anuncia-se a antífona e imediatamente repete-se a mesma. Depois de cada estrofe, repete-se de novo.</p>
-
-<p>Na recitação individual não é necessário repetir a antífona; basta dizê-la no começo e no fim do salmo.</p>
-
-<h3>Salmo 94(95)</h3>
-
-<p><strong>Convite ao louvor de Deus</strong></p>
-
-<p><em>Animai-vos uns aos outros, dia após dia, enquanto ainda se disser 'hoje' (Hb 3,13).</em></p>
-
-<p>Um solista canta ou reza a antífona, e a assembléia a repete.</p>
-
-<p>–1 Vinde, exultemos de alegria no Senhor, *<br>
-aclamemos o Rochedo que nos salva!<br>
-–2 Ao seu encontro caminhemos com louvores, *<br>
-e com cantos de alegria o celebremos!</p>
-
-<p><em>Repete-se a antífona.</em></p>
-
-<p>–3 Na verdade, o Senhor é o grande Deus, *<br>
-o grande Rei, muito maior que os deuses todos.<br>
-–4 Tem nas mãos as profundezas dos abismos, *<br>
-e as alturas das montanhas lhe pertencem;<br>
-–5 o mar é dele, pois foi ele quem o fez, *<br>
-e a terra firme suas mãos a modelaram.</p>
-
-<p><em>Repete-se a antífona.</em></p>
-
-<p>–6 Vinde adoremos e prostremo-nos por terra, *<br>
-e ajoelhemos ante o Deus que nos criou!<br>
-=7 Porque ele é o nosso Deus, nosso Pastor, †<br>
-e nós somos o seu povo e seu rebanho, *<br>
-as ovelhas que conduz com sua mão.</p>
-
-<p><em>Repete-se a antífona.</em></p>
-
-<p>=8 Oxalá ouvísseis hoje a sua voz: †<br>
-"Não fecheis os corações como em Meriba, *<br>
-9 como em Massa, no deserto, aquele dia,<br>
-– em que outrora vossos pais me provocaram, *<br>
-apesar de terem visto as minhas obras".</p>
-
-<p><em>Repete-se a antífona.</em></p>
-
-<p>=10 Quarenta anos desgostou-me aquela raça †<br>
-e eu disse: "Eis um povo transviado, *<br>
-11 seu coração não conheceu os meus caminhos!"<br>
-– E por isso lhes jurei na minha ira: *<br>
-"Não entrarão no meu repouso prometido!"</p>
-
-<p><em>Repete-se a antífona.</em></p>
-
-<p><strong>(Cantado)</strong></p>
-
-<p>Demos glória a Deus Pai onipotente<br>
-e a seu Filho, Jesus Cristo, Senhor nosso, †<br>
-e ao Espírito que habita em nosso peito *<br>
-pelos séculos dos séculos. Amém.</p>
-
-<p><strong>(Rezado):</strong></p>
-
-<p>– Glória ao Pai e ao Filho e ao Espírito Santo. *<br>
-Como era no princípio, agora e sempre. Amém.</p>
-
-<p><em>Repete-se a antífona.</em></p>
-
-<p>O salmo 94(95) pode ser substituído pelo salmo (99)100, salmo 66(67), ou salmo 23(24), abaixo. Se um destes salmos ocorre no Ofício, em seu lugar diz-se o salmo 94(95).</p>
-
-<p>Quando o Invitatório é recitado antes das Laudes, pode ser omitido o salmo com sua antífona, conforme as circunstâncias.</p>
-
-<h3>Salmo 23(24)</h3>
-
-<p><strong>Entrada do Senhor no templo</strong></p>
-
-<p><em>Na ascensão, as portas do céu se abriram para o Cristo (Sto. Irineu).</em></p>
-
-<p>–1 Ao Senhor pertence a terra e o que ela encerra, *<br>
-o mundo inteiro com os seres que o povoam;<br>
-–2 porque ele a tornou firme sobre os mares, *<br>
-e sobre as águas a mantém inabalável.</p>
-
-<p>R.</p>
-
-<p>–3 "Quem subirá até o monte do Senhor, *<br>
-quem ficará em sua santa habitação?"<br>
-=4 "Quem tem mãos puras e inocente coração, †<br>
-quem não dirige sua mente para o crime, *<br>
-nem jura falso para o dano de seu próximo.</p>
-
-<p>R.</p>
-
-<p>–5 Sobre este desce a bênção do Senhor *<br>
-e a recompensa de seu Deus e Salvador".<br>
-–6 "É assim a geração dos que o procuram, *<br>
-e do Deus de Israel buscam a face".</p>
-
-<p>R.</p>
-
-<p>=7 "Ó portas, levantai vossos frontões! †<br>
-Elevai-vos bem mais alto, antigas portas, *<br>
-a fim de que o Rei da glória possa entrar!"</p>
-
-<p>R.</p>
-
-<p>=8 Dizei-nos: "Quem é este Rei da glória?" †<br>
-"É o Senhor, o valoroso, o onipotente, *<br>
-o Senhor, o poderoso nas batalhas!"</p>
-
-<p>R.</p>
-
-<p>=9 "Ó portas, levantai vossos frontões! †<br>
-Elevai-vos bem mais alto, antigas portas, *<br>
-a fim de que o Rei da glória possa entrar!"</p>
-
-<p>R.</p>
-
-<p>=10 Dizei-nos: "Quem é este Rei da glória?" †<br>
-"O Rei da glória é o Senhor onipotente, *<br>
-o Rei da glória é o Senhor Deus do universo!"</p>
-
-<p>R.</p>
-
-<p>– Glória ao Pai e ao Filho e ao Espírito Santo. *<br>
-Como era no princípio, agora e sempre. Amém.</p>
-
-<p>R.</p>
-
-<h3>Salmo 66(67)</h3>
-
-<p><strong>Todos os povos celebrem o Senhor</strong></p>
-
-<p><em>Sabei, pois, que esta salvação de Deus já foi comunicada aos pagãos! (At 28,28).</em></p>
-
-<p>–2 Que Deus nos dê a sua graça e sua bênção, *<br>
-e sua face resplandeça sobre nós!<br>
-–3 Que na terra se conheça o seu caminho *<br>
-e a sua salvação por entre os povos.</p>
-
-<p>R.</p>
-
-<p>–4 Que as nações vos glorifiquem, ó Senhor, *<br>
-que todas as nações vos glorifiquem!</p>
-
-<p>R.</p>
-
-<p>–5 Exulte de alegria a terra inteira, *<br>
-pois julgais o universo com justiça;<br>
-– os povos governais com retidão, *<br>
-e guiais, em toda a terra, as nações.</p>
-
-<p>R.</p>
-
-<p>–6 Que as nações vos glorifiquem, ó Senhor, *<br>
-que todas as nações vos glorifiquem!</p>
-
-<p>R.</p>
-
-<p>–7 A terra produziu sua colheita: *<br>
-o Senhor e nosso Deus nos abençoa.<br>
-–8 Que o Senhor e nosso Deus nos abençoe, *<br>
-e o respeitem os confins de toda terra!</p>
-
-<p>R.</p>
-
-<p>– Glória ao Pai e ao Filho e ao Espírito Santo. *<br>
-Como era no princípio, agora e sempre. Amém.</p>
-
-<p>R.</p>
-
-<h3>Salmo 99(100)</h3>
-
-<p><strong>Alegria dos que entram no templo</strong></p>
-
-<p><em>O Senhor ordena aos que foram salvos que cantem o hino de vitória (Sto. Atanásio).</em></p>
-
-<p>=2 Aclamai o Senhor, ó terra inteira, †<br>
-servi ao Senhor com alegria, *<br>
-ide a ele cantando jubilosos!</p>
-
-<p>R.</p>
-
-<p>=3 Sabei que o Senhor, só ele, é Deus †<br>
-Ele mesmo nos fez, e somos seus, *<br>
-nós somos seu povo e seu rebanho.</p>
-
-<p>R.</p>
-
-<p>=4 Entrai por suas portas dando graças, †<br>
-e em seus átrios com hinos de louvor, *<br>
-dai-lhe graças, seu nome bendizei!</p>
-
-<p>R.</p>
-
-<p>=5 Sim, é bom o Senhor e nosso Deus, †<br>
-sua bondade perdura para sempre, *<br>
-seu amor é fiel eternamente!</p>
-
-<p>R.</p>
-
-<p>– Glória ao Pai e ao Filho, e ao Espírito Santo. *<br>
-Como era no princípio, agora e sempre. Amém.</p>
-
-<p>R.</p>
-`;
-
-// Array de Orações Eucarísticas (vazio para reiniciar)
 const ORACOES_EUCARISTICAS = [
     {
         id: 'oe1',
@@ -2239,7 +2030,6 @@ app.get('*', async (req, res) => {
         // Remover divs de navegação do WordPress (botões de Laudes, Vésperas, etc.)
         $('.wp-block-button').remove();
         $('[class*="wp-block-buttons"]').remove();
-        $('[class*="wp-block-comments"]').remove();
         
         // Remover divs com classes específicas do WordPress
         $('[class*="wp-block-group alignwide is-vertical"]').remove();
@@ -2301,12 +2091,17 @@ app.get('*', async (req, res) => {
                     </div>
                 </div>
             `;
-            $('body').prepend(bannerHTML);
+            // Remover duplicatas e inserir na ordem: banner -> nav -> hours
+            $('body').find('.liturgia-info-banner, .main-nav, .hours-selector').remove();
+            if (bannerHTML) {
+                $('body').prepend(bannerHTML);
+                $('.liturgia-info-banner').after(buildMainNav('liturgia'));
+                $('.main-nav').after(buildHoursSelector(horaAtiva));
+            } else {
+                $('body').prepend(buildMainNav('liturgia'));
+                $('.main-nav').after(buildHoursSelector(horaAtiva));
+            }
         }
-        
-        // Adicionar menu e seletor de horas
-        $('body').prepend(buildHoursSelector(horaAtiva));
-        $('body').prepend(buildMainNav('liturgia'));
         
         $('head').prepend(`
             <meta charset="UTF-8">
