@@ -1,0 +1,31 @@
+/* Nav styles (high specificity to override page defaults) */
+:root{--primary-color:#8b4513;--text-color:#5b3a21;--bg-color:#f7f2e0;--accent-color:#b66b2c}
+.main-nav{background:transparent;padding:12px 18px;border-bottom:1px solid rgba(0,0,0,0.04)}
+.nav-container{display:flex;align-items:center;gap:18px;max-width:1100px;margin:0 auto}
+.nav-brand{font-weight:700;color:var(--primary-color);text-decoration:none;font-size:1.25rem}
+.nav-menu{display:flex;gap:14px;margin:0;padding:0;list-style:none}
+.nav-menu li{margin:0}
+.nav-menu a{color:var(--text-color);text-decoration:none;padding:6px 8px;border-radius:6px}
+.nav-menu a.active{color:var(--primary-color);font-weight:700}
+
+/* collapse area (mobile) */
+.collapse-area{position:relative;margin-left:auto}
+.collapse-toggle{display:none}
+.collapse-menu{display:none}
+
+/* Strong rules to avoid bullets showing */
+.main-nav ul{list-style:none !important;margin:0 !important;padding:0 !important}
+.main-nav ul li{list-style:none !important}
+
+@media (max-width:768px){
+  .nav-menu{display:none !important}
+  .collapse-toggle{display:inline-block;width:36px;height:28px;position:relative;background:none;border:1px solid rgba(0,0,0,0.08);border-radius:6px;cursor:pointer;padding:4px}
+  .collapse-toggle::before,.collapse-toggle::after{content:'';display:block;height:3px;background:var(--primary-color);border-radius:2px;position:absolute;left:8px;right:8px}
+  .collapse-toggle::before{top:8px;box-shadow:0 8px 0 0 var(--primary-color)}
+  .collapse-toggle::after{bottom:8px}
+  .collapse-menu{display:none;position:absolute;top:56px;right:12px;background:rgba(255,255,255,0.98);border:1px solid rgba(0,0,0,0.06);border-radius:10px;padding:10px;box-shadow:0 10px 30px rgba(0,0,0,0.08);min-width:200px;z-index:2000}
+  .collapse-menu.open{display:block}
+  .collapse-menu ul{list-style:none;margin:0;padding:0}
+  .collapse-menu li{padding:8px 0}
+  .collapse-menu a{color:var(--primary-color);text-decoration:none}
+}
