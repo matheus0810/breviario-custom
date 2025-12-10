@@ -3,7 +3,8 @@ const router = express.Router();
 
 // Importar constantes
 const {
-    BASE_STYLES
+    BASE_STYLES,
+    BASE_SCRIPTS
 } = require('./constants');
 
 // Função auxiliar para construir navegação
@@ -19,7 +20,17 @@ function buildMainNav(activeSection = '') {
         <nav class="main-nav">
             <div class="nav-container">
                 <a href="/" class="nav-brand">🙏 Breviário</a>
-                <ul class="nav-menu">
+                <div class="collapse-area">
+                    <button class="collapse-toggle" aria-expanded="false" aria-label="Abrir menu"></button>
+                    <div class="collapse-menu" aria-hidden="true">
+                        <ul>
+                            ${navSections.map(section => `
+                                <li><a href="${section.href}" class="nav-link ${section.id === activeSection ? 'active' : ''}">${section.label}</a></li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
+                <ul class="nav-menu" id="nav-menu">
                     ${navSections.map(section => `
                         <li><a href="${section.href}" class="nav-link ${section.id === activeSection ? 'active' : ''}">${section.label}</a></li>
                     `).join('')}
@@ -107,7 +118,11 @@ router.get('/', (req, res) => {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <link rel="icon" href="data:,">
             <title>Orações e Formação - Breviário</title>
-            <style>${BASE_STYLES}
+            <!-- Carregar CSS/JS do menu a partir de arquivos estáticos para consistência -->
+            <style>${BASE_STYLES}</style>
+            <link rel="stylesheet" href="/nav.css">
+            <script src="/nav.js" defer></script>
+            <style>
                 .tabs {
                     display: flex;
                     justify-content: center;
@@ -667,7 +682,8 @@ router.get('/:id', (req, res) => {
                 <meta charset="UTF-8">
                 <meta name="viewport" content="width=device-width, initial-scale=1.0">
                 <title>Orações e Formação - Breviário</title>
-                <style>${BASE_STYLES}</style>
+                <link rel="stylesheet" href="/nav.css">
+                <script src="/nav.js"></script>
             </head>
             <body>
                 ${nav}
@@ -706,7 +722,7 @@ router.get('/:id', (req, res) => {
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <link rel="icon" href="data:,">
             <title>${prayer.title} - Breviário</title>
-            <style>${BASE_STYLES}
+            <style>${BASE_STYLES}</style><link rel="stylesheet" href="/nav.css"><script src="/nav.js"></script><style>
                 .prayer-navigation {
                     display: flex;
                     justify-content: space-between;
