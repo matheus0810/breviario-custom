@@ -6,6 +6,7 @@ const path = require('path');
 
 const app = express();
 const PORT = 3000;
+const SAO_PAULO_TZ = 'America/Sao_Paulo';
 
 // Importar routers
 const leiturasRouter = require('./leituras');
@@ -14,7 +15,10 @@ const liturgiaRouter = require('./liturgia');
 const oracoesRouter = require('./oracoes');
 
 // Servir arquivos estáticos
-app.use('/public', express.static('public'));
+// Servir arquivos estáticos (ex.: /style.css, /script.js)
+app.use(express.static(path.join(__dirname, 'public')));
+// manter rota alternativa caso chamadas usem /public/*
+app.use('/public', express.static(path.join(__dirname, 'public')));
 
 // Usar routers
 app.use('/leituras', leiturasRouter);
@@ -28,6 +32,17 @@ const NAV_SECTIONS = [
     { id: 'missa', label: 'Missa', href: '/missa' },
     { id: 'oracoes', label: 'Orações e Formação', href: '/oracoes' }
 ];
+// importar scripts/styles compartilhados
+const { BASE_SCRIPTS } = require('./constants');
+const HORA_OPTIONS = [
+    { tipo: 'invitatorio', label: 'Invitatório', periodo: 'Início' },
+    { tipo: 'laudes', label: 'Laudes', periodo: 'Manhã' },
+    { tipo: 'vesperas', label: 'Vésperas', periodo: 'Tarde' },
+    { tipo: 'completas', label: 'Completas', periodo: 'Noite' }
+];
+// URLs do site liturgiadashoras (usadas por rotas que fazem scraping)
+const CALENDARIO_URL = 'https://liturgiadashoras.online/calendario/';
+const BASE_SITE_URL = 'https://liturgiadashoras.online/';
 
 const ORACOES_EUCARISTICAS = [
     {
@@ -1075,6 +1090,35 @@ app.get('/leituras', (req, res) => {
                     }
                 }
             </style>
+            <link rel="stylesheet" href="/nav.css">
+            <script src="/nav.js" defer></script>
+            <script>
+                ${BASE_SCRIPTS}
+            </script>
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    function doToggle(menu) {
+                        if (!menu) return;
+                        menu.classList.toggle('open');
+                    }
+
+                    document.querySelectorAll('.hamburger-btn').forEach(btn => {
+                        btn.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            const container = btn.closest('.nav-container');
+                            const menu = container ? (container.querySelector('#nav-menu') || container.querySelector('.nav-menu')) : document.getElementById('nav-menu');
+                            doToggle(menu);
+                        }
+                    </style>
+                    <link rel="stylesheet" href="/nav.css">
+                    <script src="/nav.js" defer></script>
+                    <script>
+                            e.preventDefault();
+                            btn.click();
+                        }, { passive: false });
+                    });
+                });
+            </script>
         </head>
         <body>
             ${nav}
@@ -1337,6 +1381,10 @@ app.get('/missa', (req, res) => {
                     }
                 }
             </style>
+            <script>
+                ${BASE_SCRIPTS}
+            </script>
+            <!-- Toggle do menu gerenciado por BASE_SCRIPTS -->
         </head>
         <body>
             ${nav}
@@ -1448,20 +1496,27 @@ app.get('/missa', (req, res) => {
 
 function buildMainNav(activeSection = 'liturgia') {
     const links = NAV_SECTIONS.map(section => `
-        <a href="${section.href}" class="nav-item ${section.id === activeSection ? 'active' : ''}">
-            ${section.label}
-        </a>
+        <li><a href="${section.href}" class="nav-link ${section.id === activeSection ? 'active' : ''}">${section.label}</a></li>
     `).join('');
 
     return `
         <nav class="main-nav">
             <div class="nav-container">
-                <a class="nav-brand" href="/">Liturgia Catolica</a>
-                <div class="nav-menu">
-                    ${links}
+                <a class="nav-brand" href="/">🙏 Breviário</a>
+                <div class="collapse-area">
+                    <button class="collapse-toggle" aria-expanded="false" aria-label="Abrir menu"></button>
+                    <div class="collapse-menu" aria-hidden="true">
+                        <ul>
+                            ${links}
+                        </ul>
+                    </div>
                 </div>
+                <ul class="nav-menu" id="nav-menu">
+                    ${links}
+                </ul>
             </div>
         </nav>
+        <!-- Toggle gerenciado por BASE_SCRIPTS -->
     `;
 }
 
@@ -1923,7 +1978,7 @@ app.get('*', async (req, res) => {
                 <link rel="icon" href="data:,">
                 <title>Invitatório - Liturgia das Horas</title>
             `);
-            $('head').append(`<style>${BASE_STYLES}</style>`);
+            $('head').append(`<style>${BASE_STYLES}</style><link rel="stylesheet" href="/nav.css"><script src="/nav.js"></script>`);
             
             return res.send($.html());
         }
@@ -2109,7 +2164,7 @@ app.get('*', async (req, res) => {
             <link rel="icon" href="data:,">
             <title>Breviário</title>
         `);
-        $('head').append(`<style>${BASE_STYLES}</style>`);
+        $('head').append(`<style>${BASE_STYLES}</style><link rel="stylesheet" href="/nav.css"><script src="/nav.js"></script>`);
 
         res.send($.html());
         
