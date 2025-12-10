@@ -18,6 +18,14 @@ const NAV_SECTIONS = [
     { id: 'oracoes', label: 'Orações e Formação', href: '/oracoes' }
 ];
 
+// importar scripts compartilhados (se disponíveis)
+let BASE_SCRIPTS = '';
+try {
+    ({ BASE_SCRIPTS } = require('./constants'));
+} catch (e) {
+    BASE_SCRIPTS = '';
+}
+
 const HORA_OPTIONS = [
     { tipo: 'invitatorio', label: 'Invitatório', periodo: 'Início' },
     { tipo: 'laudes', label: 'Laudes', periodo: 'Manhã' },
@@ -433,18 +441,26 @@ function buildMainNav(activeSection = 'liturgia') {
     ];
 
     const links = sections.map(section => `
-        <a href="${section.href}" class="nav-item ${section.id === activeSection ? 'active' : ''}">
-            ${section.label}
-        </a>
+        <li><a href="${section.href}" class="nav-link ${section.id === activeSection ? 'active' : ''}">${section.label}</a></li>
     `).join('');
 
     return `
         <nav class="main-nav">
             <div class="nav-container">
-                <a class="nav-brand" href="/">Liturgia Católica</a>
-                <div class="nav-menu">
-                    ${links}
+                <a class="nav-brand" href="/">🙏 Breviário</a>
+                <div class="collapse-area">
+                    <button class="collapse-toggle" aria-expanded="false" aria-label="Abrir menu"></button>
+                    <div class="collapse-menu" aria-hidden="true">
+                        <ul>
+                            ${NAV_SECTIONS.map(section => `
+                                <li><a href="${section.href}" class="nav-link ${section.id === activeSection ? 'active' : ''}">${section.label}</a></li>
+                            `).join('')}
+                        </ul>
+                    </div>
                 </div>
+                <ul class="nav-menu" id="nav-menu">
+                    ${links}
+                </ul>
             </div>
         </nav>
     `;
@@ -946,7 +962,7 @@ router.get('/', async (req, res) => {
                 <link rel="icon" href="data:,">
                 <title>Invitatório - Liturgia das Horas</title>
             `);
-            $('head').append(`<style>${BASE_STYLES}
+            $('head').append(`<style>${BASE_STYLES}</style><link rel="stylesheet" href="/nav.css"><script src="/nav.js"></script><style>
                 .wp-site-blocks {
                     padding: 20px;
                     line-height: 1.8;
@@ -1156,7 +1172,31 @@ router.get('/', async (req, res) => {
             <link rel="icon" href="data:,">
             <title>Breviário</title>
         `);
-        $('head').append(`<style>${BASE_STYLES}</style>`);
+            $('head').append(`<style>${BASE_STYLES}</style><link rel="stylesheet" href="/nav.css"><script src="/nav.js"></script>`);
+        $('head').append(`
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    function doToggle(menu) {
+                        if (!menu) return;
+                        menu.classList.toggle('open');
+                    }
+
+                    document.querySelectorAll('.hamburger-btn').forEach(btn => {
+                        btn.addEventListener('click', function (e) {
+                            e.preventDefault();
+                            const container = btn.closest('.nav-container');
+                            const menu = container ? (container.querySelector('#nav-menu') || container.querySelector('.nav-menu')) : document.getElementById('nav-menu');
+                            doToggle(menu);
+                        });
+
+                        btn.addEventListener('touchstart', function (e) {
+                            e.preventDefault();
+                            btn.click();
+                        }, { passive: false });
+                    });
+                });
+            </script>
+        `);
 
         res.send($.html());
         
