@@ -269,18 +269,24 @@ const RITOS_INICIAIS = [
             'Orai, irmãos e irmãs, para que o nosso sacrifício seja aceito por Deus, Pai todo-poderoso.'
         ],
         la: [
-            '<span class="rubrica">O povo senta-se e nesta altura tem início o Cântico do Ofertório, se for oportuno...</span>',
-            'Benedíctus es, Dómine, Deus universi, quia de tua largitáte accépimus panem...',
+            'Benedíctus es, Dómine, Deus univérsi, quia de tua largitáte accépimus panem, quem tibi offérimus, fructum terræ et óperis mánuum hóminum: ex quo nobis fiet panis vitæ.<br><strong>℟. Benedíctus Deus in sǽcula.</strong>',
             '<span class="rubrica">O sacerdote verte um pouco de água no cálice, dizendo em voz baixa:</span>',
-            'Per huius aquae et vini mystérium...',
+            'Per huius aquæ et vini mystérium eius efficiámur divinitátis consórtes, qui humanitátis nostræ fíeri dignátus est particeps.',
             '<span class="rubrica">Depois, o sacerdote toma o cálice e, mantendo-o um pouco elevado sobre o altar:</span>',
-            'Benedíctus es, Dómine, Deus universi, quia de tua largitáte accépimus vinum...',
+            'Benedíctus es, Dómine, Deus univérsi, quia de tua largitáte accépimus vinum, quod tibi offérimus, fructum vitis et óperis mánuum hóminum, ex quo nobis fiet potus spiritális.<br><strong>℟. Benedíctus Deus in sǽcula.</strong>',
             '<span class="rubrica">Depois, o sacerdote, profundamente inclinado diante do altar, diz em silêncio:</span>',
-            'In spíritu humilitátis et in ánimo contríto...',
-            '<span class="rubrica">De seguida o sacerdote lava as mãos, diz em silêncio:</span>',
-            'Lava me, Dómine, ab iniquitáte mea...',
-            '<span class="rubrica">Levantando-se de pé, o sacerdote diz:</span>',
-            'Oráte, fratres, ut meum ac vestrum sacrifícium acceptábile fiat apud Deum Patrem omnipoténtem.'
+            'In spíritu humilitátis et in ánimo contríto suscipiámur a te, Dómine; et sic fiat sacrifícium nostrum in conspéctu tuo hódie, ut pláceat tibi, Dómine Deus.',
+            '<span class="rubrica">O sacerdote, em pé ao lado do altar, lava as mãos, dizendo em silêncio:</span>',
+            'Lava me, Dómine, ab iniquitáte mea, et a peccáto meo munda me.',
+            '<span class="rubrica">Levantado-se o povo, o sacerdote diz:</span>',
+            'Oráte, fratres: ut meum ac vestrum sacrifícium acceptábile fiat apud Deum Patrem omnipoténtem.',
+            '<strong>℟. Suscípiat Dóminus sacrifícium de mánibus tuis ad laudem et glóriam nóminis sui, ad utilitátem quoque nostram totiúsque Ecclésiæ suæ sanctæ.</strong>',
+            '',
+            '<h4>ORAÇÃO SOBRE AS OFERENDAS</h4>',
+            '<span class="rubrica">Consultar folha de antífonas e orações diárias.</span>',
+            '',
+            '<h4>PREFÁCIO</h4>',
+            '<span class="rubrica">O Prefácio constitui a primeira parte da Oração Eucarística e inicia-se com um diálogo solene: o sacerdote convida o povo a levantar o coração para o Senhor em louvor e acção de graças, e associa-o a si na oração que ele, em nome de toda a comunidade, dirige ao Pai por meio de Jesus Cristo:</span>'
         ]
     }
 ];
