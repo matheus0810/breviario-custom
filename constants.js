@@ -526,6 +526,7 @@ const BASE_STYLES = `
         justify-content: space-between;
         align-items: center;
         padding: 0 20px;
+        position: relative;
     }
 
     .nav-brand {
@@ -567,6 +568,39 @@ const BASE_STYLES = `
         height: 2px;
         background: var(--primary-color);
     }
+
+    .hamburger-btn {
+        display: none;
+        background: none;
+        border: none;
+        cursor: pointer;
+        z-index: 1002;
+    }
+
+    /* Estilo mais robusto para o ícone hamburguer (usa barras CSS em vez de glifo) */
+    .hamburger-btn {
+        width: 36px;
+        height: 24px;
+        position: relative;
+        text-indent: -9999px; /* esconder texto fallback */
+        overflow: hidden;
+        display: inline-block;
+    }
+    .hamburger-btn::before,
+    .hamburger-btn::after {
+        content: '';
+        display: block;
+        height: 3px;
+        background: var(--primary-color);
+        border-radius: 2px;
+        position: absolute;
+        left: 6px;
+        right: 6px;
+        transition: all 0.2s ease;
+    }
+    /* criar a barra do meio via box-shadow na pseudo-elemento superior */
+    .hamburger-btn::before { top: 5px; box-shadow: 0 8px 0 0 var(--primary-color); }
+    .hamburger-btn::after { bottom: 5px; }
 
     .content {
         max-width: 800px;
@@ -743,6 +777,98 @@ const BASE_STYLES = `
             gap: 10px;
         }
     }
+
+    @media (max-width: 768px) {
+        .nav-container {
+            flex-direction: row;
+            align-items: center;
+            padding: 10px 16px;
+        }
+        /* esconder o menu principal no mobile e usar o collapse */
+        .nav-menu {
+            display: none !important;
+        }
+        .collapse-toggle {
+            display: inline-block;
+            width: 36px;
+            height: 28px;
+            position: relative;
+            background: none;
+            border: 1px solid rgba(0,0,0,0.08);
+            border-radius: 6px;
+            cursor: pointer;
+            margin-left: auto;
+            padding: 4px;
+        }
+        .collapse-toggle::before,
+        .collapse-toggle::after {
+            content: '';
+            display: block;
+            height: 3px;
+            background: var(--primary-color);
+            border-radius: 2px;
+            position: absolute;
+            left: 8px;
+            right: 8px;
+        }
+        .collapse-toggle::before { top: 8px; box-shadow: 0 8px 0 0 var(--primary-color); }
+        .collapse-toggle::after { bottom: 8px; }
+
+        .collapse-menu {
+            display: none;
+            position: absolute;
+            top: 58px;
+            right: 16px;
+            background: rgba(255,255,255,0.98);
+            border: 1px solid rgba(0,0,0,0.06);
+            border-radius: 10px;
+            padding: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            min-width: 180px;
+            z-index: 2000;
+        }
+        .collapse-menu.open {
+            display: block;
+        }
+        .collapse-menu ul { list-style: none; margin: 0; padding: 0; }
+        .collapse-menu li { padding: 6px 0; }
+        .collapse-menu a { color: var(--primary-color); text-decoration: none; }
+    }
+`;
+
+const BASE_SCRIPTS = `
+    (function(){
+        try { console.log('BASE_SCRIPTS loaded'); } catch(e){}
+        function doToggle(menu){ if(!menu) return; menu.classList.toggle('open'); }
+            document.addEventListener('DOMContentLoaded', function(){
+                document.querySelectorAll('.hamburger-btn').forEach(function(btn){
+                    btn.addEventListener('click', function(e){ e.preventDefault(); var container = btn.closest('.nav-container'); var menu = container ? (container.querySelector('#nav-menu') || container.querySelector('.nav-menu')) : document.getElementById('nav-menu'); doToggle(menu); });
+                    btn.addEventListener('touchstart', function(e){ e.preventDefault(); btn.click(); }, { passive: false });
+                });
+
+                // collapse-toggle (menu no canto superior direito)
+                document.querySelectorAll('.collapse-toggle').forEach(function(btn){
+                    btn.addEventListener('click', function(e){
+                        e.preventDefault();
+                        var container = btn.closest('.nav-container');
+                        var menu = container ? container.querySelector('.collapse-menu') : document.querySelector('.collapse-menu');
+                        if(!menu) return;
+                        menu.classList.toggle('open');
+                        var expanded = menu.classList.contains('open');
+                        btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+                        menu.setAttribute('aria-hidden', expanded ? 'false' : 'true');
+                    });
+                });
+
+                // clique fora fecha o collapse
+                document.addEventListener('click', function(e){
+                    if (!e.target.closest('.nav-container')){
+                        document.querySelectorAll('.collapse-menu.open').forEach(function(m){ m.classList.remove('open'); m.setAttribute('aria-hidden', 'true'); });
+                        document.querySelectorAll('.collapse-toggle[aria-expanded="true"]').forEach(function(b){ b.setAttribute('aria-expanded','false'); });
+                    }
+                });
+            });
+    })();
 `;
 
 module.exports = {
@@ -751,5 +877,6 @@ module.exports = {
     RITOS_INICIAIS,
     ORDINARIO_COMUNHAO,
     PORTUGUESE_KEYWORDS,
-    BASE_STYLES
+    BASE_STYLES,
+    BASE_SCRIPTS
 };
