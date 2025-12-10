@@ -263,10 +263,17 @@ const RITOS_INICIAIS = [
             'Bendito sejais, Senhor, Deus do universo, pelo vinho que recebemos da vossa bondade, fruto da videira e do trabalho humano, que hoje Vos apresentamos e que para nós se vai tornar Vinho da salvação.<br><strong>℟. Bendito seja Deus para sempre.</strong>',
             '<span class="rubrica">Depois, o sacerdote, profundamente inclinado diante do altar, diz em silêncio:</span>',
             'De coração contrito e humilde, sejamos, Senhor, acolhidos por Vós; e seja o nosso sacrifício hoje celebrado de modo que Vos agrade, Senhor, nosso Deus.',
-            '<span class="rubrica">De seguida o sacerdote lava as mãos, diz em silêncio:</span>',
+            '<span class="rubrica">O sacerdote, em pé ao lado do altar, lava as mãos, dizendo em silêncio:</span>',
             'Lavai-me, Senhor, de minhas faltas e purificai-me de meus pecados.',
-            '<span class="rubrica">Levantando-se de pé, o sacerdote diz:</span>',
-            'Orai, irmãos e irmãs, para que o nosso sacrifício seja aceito por Deus, Pai todo-poderoso.'
+            '<span class="rubrica">Levantado-se o povo, o sacerdote diz:</span>',
+            'Orai, irmãos e irmãs, para que o nosso sacrifício seja aceito por Deus, Pai todo-poderoso.',
+            '<strong>℟. Receba o Senhor por tuas mãos este sacrifício, para glória do seu nome, para nosso bem e de toda a santa Igreja.</strong>',
+            '',
+            '<h4>ORAÇÃO SOBRE AS OFERENDAS</h4>',
+            '<span class="rubrica">Consultar folha de antífonas e orações diárias.</span>',
+            '',
+            '<h4>PREFÁCIO</h4>',
+            '<span class="rubrica">O Prefácio constitui a primeira parte da Oração Eucarística e inicia-se com um diálogo solene: o sacerdote convida o povo a levantar o coração para o Senhor em louvor e acção de graças, e associa-o a si na oração que ele, em nome de toda a comunidade, dirige ao Pai por meio de Jesus Cristo:</span>'
         ],
         la: [
             'Benedíctus es, Dómine, Deus univérsi, quia de tua largitáte accépimus panem, quem tibi offérimus, fructum terræ et óperis mánuum hóminum: ex quo nobis fiet panis vitæ.<br><strong>℟. Benedíctus Deus in sǽcula.</strong>',
@@ -305,7 +312,7 @@ const ORDINARIO_COMUNHAO = [
             '<strong>℟. Amen.</strong>'
         ]
     },
-    {
+    {   
         title: 'Rito da Comunhão',
         pt: [
             '<span class="rubrica">O sacerdote diz:</span>',
