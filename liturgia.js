@@ -637,17 +637,44 @@ async function obterLinkDoCalendario(data = getTodayInSaoPaulo()) {
     const mes = data.getMonth();
     const mesNome = meses[mes];
     
-    // Mapa de solenidades conhecidas por data
-    const solenidadesPorData = {
-        '12-08': ['imaculada', 'imaculada conceição', 'imaculada conceicao'],
-        '12-25': ['natal', 'nascimento do senhor'],
-        '01-01': ['maria mãe de deus', 'maria mae de deus'],
-        '08-15': ['assunção', 'assuncao'],
-        // Adicionar mais conforme necessário
-    };
+    // Primeiro: tentar obter dados da API para saber o tempo litúrgico correto
+    let liturgiaAPI = null;
+    try {
+        const dadosAPI = await obterDadosLiturgiaAPI(data);
+        if (dadosAPI && dadosAPI.liturgia) {
+            liturgiaAPI = dadosAPI.liturgia.toLowerCase();
+            console.log(`📖 Liturgia da API: "${dadosAPI.liturgia}"`);
+        }
+    } catch (err) {
+        console.log('⚠️ Erro ao buscar dados da API:', err.message);
+    }
     
     const dataKey = `${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
-    const palavrasChave = solenidadesPorData[dataKey] || [];
+    const palavrasChave = [];
+    
+    // Extrair palavras-chave da liturgia da API
+    if (liturgiaAPI) {
+        if (liturgiaAPI.includes('solenidade')) palavrasChave.push('solenidade');
+        if (liturgiaAPI.includes('festa')) palavrasChave.push('festa');
+        if (liturgiaAPI.includes('memória') || liturgiaAPI.includes('memoria')) palavrasChave.push('memória', 'memoria');
+        if (liturgiaAPI.includes('domingo')) palavrasChave.push('domingo');
+        if (liturgiaAPI.includes('semana do tempo comum')) palavrasChave.push('semana-do-tempo-comum', 'semana do tempo comum');
+        
+        // Extrair número da semana (ex: "2ª Semana do Tempo Comum")
+        const matchSemana = liturgiaAPI.match(/(\d+)[ªº]\s*semana/i);
+        if (matchSemana) {
+            const numSemana = matchSemana[1];
+            palavrasChave.push(`${numSemana}a-semana`, `${numSemana}ª semana`, `${numSemana}º semana`);
+        }
+        
+        // Extrair dia da semana
+        if (liturgiaAPI.includes('segunda')) palavrasChave.push('segunda-feira');
+        if (liturgiaAPI.includes('terça') || liturgiaAPI.includes('terca')) palavrasChave.push('terça-feira', 'terca-feira');
+        if (liturgiaAPI.includes('quarta')) palavrasChave.push('quarta-feira');
+        if (liturgiaAPI.includes('quinta')) palavrasChave.push('quinta-feira');
+        if (liturgiaAPI.includes('sexta')) palavrasChave.push('sexta-feira');
+        if (liturgiaAPI.includes('sábado') || liturgiaAPI.includes('sabado')) palavrasChave.push('sábado', 'sabado');
+    }
     
     console.log(`Buscando no calendário: dia ${dia} de ${mesNome} (chave: ${dataKey})`);
     if (palavrasChave.length > 0) {
