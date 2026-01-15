@@ -556,15 +556,10 @@ function normalizarLiturgiaParaUrl(textoLiturgia) {
 
 async function obterDadosLiturgiaAPI(data = getTodayInSaoPaulo()) {
     try {
-        // Formatar data para API: DD/MM/YYYY
-        const dia = String(data.getDate()).padStart(2, '0');
-        const mes = String(data.getMonth() + 1).padStart(2, '0');
-        const ano = data.getFullYear();
-        const dataFormatada = `${dia}/${mes}/${ano}`;
+        console.log(`📡 Consultando API de liturgia...`);
         
-        console.log(`📡 Consultando API de liturgia para ${dataFormatada}...`);
-        
-        const response = await fetch(`https://liturgia.up.railway.app/?data=${encodeURIComponent(dataFormatada)}`);
+        // API retorna automaticamente o dia de hoje quando chamada sem parâmetros
+        const response = await fetch('https://liturgia.up.railway.app/');
         if (!response.ok) {
             console.log(`✗ API retornou ${response.status}`);
             return null;
@@ -637,49 +632,19 @@ async function obterLinkDoCalendario(data = getTodayInSaoPaulo()) {
     const mes = data.getMonth();
     const mesNome = meses[mes];
     
-    // Primeiro: tentar obter dados da API para saber o tempo litúrgico correto
+    // Primeiro: obter dados da API para saber o dia litúrgico correto
     let liturgiaAPI = null;
     try {
         const dadosAPI = await obterDadosLiturgiaAPI(data);
         if (dadosAPI && dadosAPI.liturgia) {
-            liturgiaAPI = dadosAPI.liturgia.toLowerCase();
+            liturgiaAPI = dadosAPI.liturgia;
             console.log(`📖 Liturgia da API: "${dadosAPI.liturgia}"`);
         }
     } catch (err) {
         console.log('⚠️ Erro ao buscar dados da API:', err.message);
     }
-    
-    const dataKey = `${String(mes + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
-    const palavrasChave = [];
-    
-    // Extrair palavras-chave da liturgia da API
-    if (liturgiaAPI) {
-        if (liturgiaAPI.includes('solenidade')) palavrasChave.push('solenidade');
-        if (liturgiaAPI.includes('festa')) palavrasChave.push('festa');
-        if (liturgiaAPI.includes('memória') || liturgiaAPI.includes('memoria')) palavrasChave.push('memória', 'memoria');
-        if (liturgiaAPI.includes('domingo')) palavrasChave.push('domingo');
-        if (liturgiaAPI.includes('semana do tempo comum')) palavrasChave.push('semana-do-tempo-comum', 'semana do tempo comum');
-        
-        // Extrair número da semana (ex: "2ª Semana do Tempo Comum")
-        const matchSemana = liturgiaAPI.match(/(\d+)[ªº]\s*semana/i);
-        if (matchSemana) {
-            const numSemana = matchSemana[1];
-            palavrasChave.push(`${numSemana}a-semana`, `${numSemana}ª semana`, `${numSemana}º semana`);
-        }
-        
-        // Extrair dia da semana
-        if (liturgiaAPI.includes('segunda')) palavrasChave.push('segunda-feira');
-        if (liturgiaAPI.includes('terça') || liturgiaAPI.includes('terca')) palavrasChave.push('terça-feira', 'terca-feira');
-        if (liturgiaAPI.includes('quarta')) palavrasChave.push('quarta-feira');
-        if (liturgiaAPI.includes('quinta')) palavrasChave.push('quinta-feira');
-        if (liturgiaAPI.includes('sexta')) palavrasChave.push('sexta-feira');
-        if (liturgiaAPI.includes('sábado') || liturgiaAPI.includes('sabado')) palavrasChave.push('sábado', 'sabado');
-    }
-    
-    console.log(`Buscando no calendário: dia ${dia} de ${mesNome} (chave: ${dataKey})`);
-    if (palavrasChave.length > 0) {
-        console.log(`Palavras-chave de solenidade: ${palavrasChave.join(', ')}`);
-    }
+
+    console.log(`🔍 Buscando no calendário: dia ${dia} de ${mesNome}`);
 
     try {
         const response = await fetch(CALENDARIO_URL);
@@ -688,40 +653,122 @@ async function obterLinkDoCalendario(data = getTodayInSaoPaulo()) {
         }
 
         const html = await response.text();
-        const j = cheerio.load(html);
+        const $ = cheerio.load(html);
         let linkEncontrado = null;
 
-        // Primeiro: procurar por solenidades conhecidas
-        if (palavrasChave.length > 0) {
-            j('a').each((_, el) => {
+        // Se temos dados da API, buscar por correspondência exata com a liturgia
+        if (liturgiaAPI) {
+            const liturgiaLower = liturgiaAPI.toLowerCase();
+            const liturgiaNorm = liturgiaLower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            
+            // Extrair componentes da liturgia para busca mais flexível
+            const componentes = [];
+            
+            // Extrair dia da semana (número da feira: 2ª feira = segunda, 5ª feira = quinta)
+            const matchFeira = liturgiaNorm.match(/(\d+)[ªº]\s*feira/i);
+            if (matchFeira) {
+                const numFeira = matchFeira[1];
+                const diasSemana = {
+                    '2': 'segunda',
+                    '3': 'terca',
+                    '4': 'quarta',
+                    '5': 'quinta',
+                    '6': 'sexta',
+                    '7': 'sabado'
+                };
+                if (diasSemana[numFeira]) {
+                    componentes.push(diasSemana[numFeira]);
+                }
+            } else {
+                // Se não tem número de feira, buscar nome do dia por extenso
+                if (liturgiaNorm.includes('domingo')) componentes.push('domingo');
+                if (liturgiaNorm.includes('segunda-feira')) componentes.push('segunda');
+                if (liturgiaNorm.includes('terca-feira')) componentes.push('terca');
+                if (liturgiaNorm.includes('quarta-feira')) componentes.push('quarta');
+                if (liturgiaNorm.includes('quinta-feira')) componentes.push('quinta');
+                if (liturgiaNorm.includes('sexta-feira')) componentes.push('sexta');
+                if (liturgiaNorm.includes('sabado')) componentes.push('sabado');
+            }
+            
+            // Número da semana (ex: "1ª Semana", "2ª Semana", etc)
+            const matchSemana = liturgiaNorm.match(/(\d+)[ªº]\s*semana/i);
+            if (matchSemana) {
+                const num = matchSemana[1];
+                componentes.push(`${num}a`);
+                componentes.push('semana');
+                
+                // Adicionar variações por extenso para semanas comuns
+                const numerosPorExtenso = {
+                    '1': 'primeira',
+                    '2': 'segunda',
+                    '3': 'terceira',
+                    '4': 'quarta',
+                    '5': 'quinta',
+                    '6': 'sexta'
+                };
+                if (numerosPorExtenso[num]) {
+                    componentes.push(numerosPorExtenso[num]);
+                }
+            }
+            
+            // Tempo litúrgico
+            if (liturgiaNorm.includes('tempo comum')) {
+                componentes.push('tempo');
+                componentes.push('comum');
+            }
+            if (liturgiaNorm.includes('tempo pascal')) {
+                componentes.push('tempo');
+                componentes.push('pascal');
+            }
+            if (liturgiaNorm.includes('quaresma')) componentes.push('quaresma');
+            if (liturgiaNorm.includes('advento')) componentes.push('advento');
+            if (liturgiaNorm.includes('natal')) componentes.push('natal');
+            
+            // Solenidades/Festas/Memórias
+            if (liturgiaNorm.includes('solenidade')) componentes.push('solenidade');
+            if (liturgiaNorm.includes('festa')) componentes.push('festa');
+            if (liturgiaNorm.includes('memoria')) componentes.push('memoria');
+            
+            console.log(`📋 Componentes da liturgia:`, componentes);
+            
+            // Buscar link que contenha TODOS os componentes principais
+            $('a').each((i, elem) => {
                 if (linkEncontrado) return false;
-                const href = j(el).attr('href');
-                const texto = j(el).text().trim().toLowerCase();
+                
+                const href = $(elem).attr('href');
+                const texto = $(elem).text().trim().toLowerCase();
                 
                 if (!href) return;
                 
                 const textoNorm = texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
                 const hrefNorm = href.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
                 
-                // Verificar se o texto ou href contém alguma palavra-chave da solenidade
-                const encontrouSolenidade = palavrasChave.some(palavra => {
-                    const palavraNorm = palavra.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                    return textoNorm.includes(palavraNorm) || hrefNorm.includes(palavraNorm);
+                // Verificar quantos componentes estão presentes
+                let matches = 0;
+                componentes.forEach(comp => {
+                    const compNorm = comp.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+                    if (textoNorm.includes(compNorm) || hrefNorm.includes(compNorm)) {
+                        matches++;
+                    }
                 });
                 
-                if (encontrouSolenidade) {
+                // Se encontrou a maioria dos componentes (ou todos), é o link correto
+                const threshold = Math.max(2, componentes.length - 1); // Exigir quase todos
+                if (matches >= threshold) {
                     linkEncontrado = href.startsWith('http') ? href : new URL(href, CALENDARIO_URL).href;
-                    console.log(`✓ Solenidade encontrada: "${j(el).text().trim().substring(0, 60)}" -> ${linkEncontrado}`);
+                    console.log(`✓ Liturgia encontrada (${matches}/${componentes.length} componentes): "${$(elem).text().trim()}" -> ${linkEncontrado}`);
                     return false;
                 }
             });
         }
 
-        // Segundo: se não encontrou solenidade, procurar por data explícita
+        // Se não encontrou pela API, tentar buscar por data explícita
         if (!linkEncontrado) {
-            j('a').each((_, el) => {
-                const href = j(el).attr('href');
-                const texto = j(el).text().trim();
+            console.log('📅 Buscando por data explícita...');
+            
+            $('a').each((_, el) => {
+                const href = $(el).attr('href');
+                const texto = $(el).text().trim();
                 const textoLower = texto.toLowerCase();
                 
                 if (!href) return;

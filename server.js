@@ -1613,15 +1613,10 @@ function normalizarLiturgiaParaUrl(textoLiturgia) {
 
 async function obterDadosLiturgiaAPI(data = getTodayInSaoPaulo()) {
     try {
-        // Formatar data para API: DD/MM/YYYY
-        const dia = String(data.getDate()).padStart(2, '0');
-        const mes = String(data.getMonth() + 1).padStart(2, '0');
-        const ano = data.getFullYear();
-        const dataFormatada = `${dia}/${mes}/${ano}`;
+        console.log(`📡 Consultando API de liturgia...`);
         
-        console.log(`📡 Consultando API de liturgia para ${dataFormatada}...`);
-        
-        const response = await fetch(`https://liturgia.up.railway.app/?data=${encodeURIComponent(dataFormatada)}`);
+        // API retorna automaticamente o dia de hoje quando chamada sem parâmetros
+        const response = await fetch('https://liturgia.up.railway.app/');
         if (!response.ok) {
             console.log(`✗ API retornou ${response.status}`);
             return null;
