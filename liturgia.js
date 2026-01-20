@@ -521,6 +521,28 @@ function parseSaoPauloDate(param) {
     return new Date(year, month - 1, day, 12);
 }
 
+function formatDateForApi(date) {
+    if (!(date instanceof Date) || Number.isNaN(date.getTime())) {
+        return null;
+    }
+
+    const dia = String(date.getDate()).padStart(2, '0');
+    const mes = String(date.getMonth() + 1).padStart(2, '0');
+    const ano = date.getFullYear();
+    return `${dia}/${mes}/${ano}`;
+}
+
+function normalizeText(value = '') {
+    if (!value) return '';
+    return value
+        .toString()
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
 function normalizarLiturgiaParaUrl(textoLiturgia) {
     // Ex: "Imaculada Conceição da Bem-aventurada Virgem Maria, Solenidade"
     // → "solenidade-da-imaculada-conceicao-da-bem-aventurada-virgem-maria"
@@ -556,10 +578,18 @@ function normalizarLiturgiaParaUrl(textoLiturgia) {
 
 async function obterDadosLiturgiaAPI(data = getTodayInSaoPaulo()) {
     try {
-        console.log(`📡 Consultando API de liturgia...`);
+        const apiUrl = new URL('https://liturgia.up.railway.app/');
+        const dataFormatada = formatDateForApi(data);
+
+        if (dataFormatada) {
+            apiUrl.searchParams.set('data', dataFormatada);
+            console.log(`📡 Consultando API de liturgia (${dataFormatada})...`);
+        } else {
+            console.log(`📡 Consultando API de liturgia...`);
+        }
         
         // API retorna automaticamente o dia de hoje quando chamada sem parâmetros
-        const response = await fetch('https://liturgia.up.railway.app/');
+        const response = await fetch(apiUrl.href);
         if (!response.ok) {
             console.log(`✗ API retornou ${response.status}`);
             return null;
@@ -656,48 +686,71 @@ async function obterLinkDoCalendario(data = getTodayInSaoPaulo()) {
         const $ = cheerio.load(html);
         let linkEncontrado = null;
 
-        // Se temos dados da API, buscar por correspondência exata com a liturgia
         if (liturgiaAPI) {
-            const liturgiaLower = liturgiaAPI.toLowerCase();
-            const liturgiaNorm = liturgiaLower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-            
-            // Extrair componentes da liturgia para busca mais flexível
-            const componentes = [];
-            
-            // Extrair dia da semana (número da feira: 2ª feira = segunda, 5ª feira = quinta)
-            const matchFeira = liturgiaNorm.match(/(\d+)[ªº]\s*feira/i);
-            if (matchFeira) {
-                const numFeira = matchFeira[1];
-                const diasSemana = {
-                    '2': 'segunda',
-                    '3': 'terca',
-                    '4': 'quarta',
-                    '5': 'quinta',
-                    '6': 'sexta',
-                    '7': 'sabado'
-                };
-                if (diasSemana[numFeira]) {
-                    componentes.push(diasSemana[numFeira]);
+            const liturgiaNorm = normalizeText(liturgiaAPI);
+            const categorias = [];
+            const adicionarCategoria = (...tokens) => {
+                const normalizados = tokens
+                    .map((token) => normalizeText(token))
+                    .filter(Boolean);
+                if (normalizados.length) {
+                    categorias.push(normalizados);
                 }
-            } else {
-                // Se não tem número de feira, buscar nome do dia por extenso
-                if (liturgiaNorm.includes('domingo')) componentes.push('domingo');
-                if (liturgiaNorm.includes('segunda-feira')) componentes.push('segunda');
-                if (liturgiaNorm.includes('terca-feira')) componentes.push('terca');
-                if (liturgiaNorm.includes('quarta-feira')) componentes.push('quarta');
-                if (liturgiaNorm.includes('quinta-feira')) componentes.push('quinta');
-                if (liturgiaNorm.includes('sexta-feira')) componentes.push('sexta');
-                if (liturgiaNorm.includes('sabado')) componentes.push('sabado');
+            };
+
+            const adicionarDiaSemanaVariacoes = (slug) => {
+                if (!slug) return;
+                if (slug === 'domingo' || slug === 'sabado') {
+                    adicionarCategoria(slug);
+                    return;
+                }
+                adicionarCategoria(slug, `${slug}-feira`, `${slug} feira`);
+            };
+
+            const diasSemanaPorNumero = {
+                '2': 'segunda',
+                '3': 'terca',
+                '4': 'quarta',
+                '5': 'quinta',
+                '6': 'sexta',
+                '7': 'sabado'
+            };
+
+            let diaSemanaDetectado = null;
+            const matchFeira = liturgiaNorm.match(/(\d+)[ªº]?\s*feira/);
+            if (matchFeira && diasSemanaPorNumero[matchFeira[1]]) {
+                diaSemanaDetectado = diasSemanaPorNumero[matchFeira[1]];
             }
-            
-            // Número da semana (ex: "1ª Semana", "2ª Semana", etc)
-            const matchSemana = liturgiaNorm.match(/(\d+)[ªº]\s*semana/i);
+
+            if (!diaSemanaDetectado) {
+                const padroesDias = [
+                    { slug: 'domingo', patterns: ['domingo'] },
+                    { slug: 'segunda', patterns: ['segunda-feira', 'segunda feira'] },
+                    { slug: 'terca', patterns: ['terca-feira', 'terca feira'] },
+                    { slug: 'quarta', patterns: ['quarta-feira', 'quarta feira'] },
+                    { slug: 'quinta', patterns: ['quinta-feira', 'quinta feira'] },
+                    { slug: 'sexta', patterns: ['sexta-feira', 'sexta feira'] },
+                    { slug: 'sabado', patterns: ['sabado'] }
+                ];
+
+                padroesDias.some(({ slug, patterns }) => {
+                    const encontrado = patterns.some((pattern) => liturgiaNorm.includes(pattern));
+                    if (encontrado) {
+                        diaSemanaDetectado = slug;
+                        return true;
+                    }
+                    return false;
+                });
+            }
+
+            adicionarDiaSemanaVariacoes(diaSemanaDetectado);
+
+            const matchSemana = liturgiaNorm.match(/(\d+)[ªº]?\s*semana/);
             if (matchSemana) {
                 const num = matchSemana[1];
-                componentes.push(`${num}a`);
-                componentes.push('semana');
-                
-                // Adicionar variações por extenso para semanas comuns
+                const ordinal = `${num}a`;
+                adicionarCategoria(ordinal, `${ordinal} semana`, `${ordinal}-semana`);
+
                 const numerosPorExtenso = {
                     '1': 'primeira',
                     '2': 'segunda',
@@ -707,85 +760,95 @@ async function obterLinkDoCalendario(data = getTodayInSaoPaulo()) {
                     '6': 'sexta'
                 };
                 if (numerosPorExtenso[num]) {
-                    componentes.push(numerosPorExtenso[num]);
+                    const porExtenso = `${numerosPorExtenso[num]} semana`;
+                    adicionarCategoria(porExtenso, porExtenso.replace(/\s+/g, '-'));
                 }
             }
-            
-            // Tempo litúrgico
-            if (liturgiaNorm.includes('tempo comum')) {
-                componentes.push('tempo');
-                componentes.push('comum');
+
+            const adicionarTempoComponentes = (valor) => {
+                if (!valor) return;
+                adicionarCategoria(valor, valor.replace(/\s+/g, '-'));
+            };
+
+            if (liturgiaNorm.includes('tempo comum')) adicionarTempoComponentes('tempo comum');
+            if (liturgiaNorm.includes('tempo pascal')) adicionarTempoComponentes('tempo pascal');
+            if (liturgiaNorm.includes('tempo do natal') || liturgiaNorm.includes('tempo de natal')) {
+                adicionarTempoComponentes('tempo do natal');
             }
-            if (liturgiaNorm.includes('tempo pascal')) {
-                componentes.push('tempo');
-                componentes.push('pascal');
-            }
-            if (liturgiaNorm.includes('quaresma')) componentes.push('quaresma');
-            if (liturgiaNorm.includes('advento')) componentes.push('advento');
-            if (liturgiaNorm.includes('natal')) componentes.push('natal');
-            
-            // Solenidades/Festas/Memórias
-            if (liturgiaNorm.includes('solenidade')) componentes.push('solenidade');
-            if (liturgiaNorm.includes('festa')) componentes.push('festa');
-            if (liturgiaNorm.includes('memoria')) componentes.push('memoria');
-            
-            console.log(`📋 Componentes da liturgia:`, componentes);
-            
-            // Buscar link que contenha TODOS os componentes principais
-            $('a').each((i, elem) => {
-                if (linkEncontrado) return false;
-                
-                const href = $(elem).attr('href');
-                const texto = $(elem).text().trim().toLowerCase();
-                
-                if (!href) return;
-                
-                const textoNorm = texto.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                const hrefNorm = href.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                
-                // Verificar quantos componentes estão presentes
-                let matches = 0;
-                componentes.forEach(comp => {
-                    const compNorm = comp.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                    if (textoNorm.includes(compNorm) || hrefNorm.includes(compNorm)) {
-                        matches++;
+            if (liturgiaNorm.includes('quaresma')) adicionarCategoria('quaresma');
+            if (liturgiaNorm.includes('advento')) adicionarCategoria('advento');
+            if (liturgiaNorm.includes('natal')) adicionarCategoria('natal');
+
+            if (liturgiaNorm.includes('solenidade')) adicionarCategoria('solenidade');
+            if (liturgiaNorm.includes('festa')) adicionarCategoria('festa');
+            if (liturgiaNorm.includes('memoria')) adicionarCategoria('memoria');
+
+            // Adicionar uma versão tipo slug para comparação direta
+            adicionarCategoria(liturgiaNorm.replace(/[^\w\s-]/g, '').replace(/\s+/g, '-'));
+
+            const categoriasResumo = categorias.map((tokens) => tokens[0]);
+            console.log(`📋 Categorias da liturgia:`, categoriasResumo);
+
+            if (categorias.length > 0) {
+                $('a').each((i, elem) => {
+                    if (linkEncontrado) return false;
+
+                    const href = $(elem).attr('href');
+                    if (!href) return;
+
+                    const texto = $(elem).text().trim();
+                    const textoNorm = normalizeText(texto);
+                    const hrefNorm = normalizeText(href);
+
+                    let matches = 0;
+                    const encontrados = [];
+
+                    categorias.forEach((tokens) => {
+                        const possuiAlgum = tokens.some((token) => textoNorm.includes(token) || hrefNorm.includes(token));
+                        if (possuiAlgum) {
+                            matches++;
+                            encontrados.push(tokens[0]);
+                        }
+                    });
+
+                    let minimo = Math.max(1, Math.min(3, categorias.length));
+                    if (categorias.length <= 2) {
+                        minimo = categorias.length;
+                    }
+
+                    if (matches >= minimo) {
+                        linkEncontrado = href.startsWith('http') ? href : new URL(href, CALENDARIO_URL).href;
+                        console.log(`✓ Liturgia encontrada (${matches}/${categorias.length} categorias): "${texto.substring(0, 80)}" -> ${linkEncontrado}`);
+                        if (encontrados.length) {
+                            console.log('   Componentes correspondentes:', encontrados);
+                        }
+                        return false;
                     }
                 });
-                
-                // Se encontrou a maioria dos componentes (ou todos), é o link correto
-                const threshold = Math.max(2, componentes.length - 1); // Exigir quase todos
-                if (matches >= threshold) {
-                    linkEncontrado = href.startsWith('http') ? href : new URL(href, CALENDARIO_URL).href;
-                    console.log(`✓ Liturgia encontrada (${matches}/${componentes.length} componentes): "${$(elem).text().trim()}" -> ${linkEncontrado}`);
-                    return false;
-                }
-            });
+            }
         }
 
-        // Se não encontrou pela API, tentar buscar por data explícita
         if (!linkEncontrado) {
             console.log('📅 Buscando por data explícita...');
-            
+
             $('a').each((_, el) => {
                 const href = $(el).attr('href');
                 const texto = $(el).text().trim();
-                const textoLower = texto.toLowerCase();
-                
                 if (!href) return;
-                
-                const textoNorm = textoLower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                const mesNomeNorm = mesNome.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-                
+
+                const textoNorm = normalizeText(texto);
+                const mesNomeNorm = normalizeText(mesNome);
+
                 const diaComZero = String(dia).padStart(2, '0');
                 const padroesDia = [
                     new RegExp(`\\b${dia}\\s+de\\s+${mesNomeNorm}`, 'i'),
                     new RegExp(`\\b${diaComZero}\\s+de\\s+${mesNomeNorm}`, 'i'),
                     new RegExp(`\\b${dia}/${mes + 1}\\b`, 'i'),
-                    new RegExp(`\\b${diaComZero}/${String(mes + 1).padStart(2, '0')}\\b`, 'i'),
+                    new RegExp(`\\b${diaComZero}/${String(mes + 1).padStart(2, '0')}\\b`, 'i')
                 ];
-                
-                const mencionaDia = padroesDia.some(padrao => padrao.test(textoNorm));
-                
+
+                const mencionaDia = padroesDia.some((padrao) => padrao.test(textoNorm));
+
                 if (mencionaDia) {
                     linkEncontrado = href.startsWith('http') ? href : new URL(href, CALENDARIO_URL).href;
                     console.log(`✓ Data encontrada: "${texto.substring(0, 60)}" -> ${linkEncontrado}`);
