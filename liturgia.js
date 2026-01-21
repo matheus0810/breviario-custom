@@ -783,8 +783,19 @@ async function obterLinkDoCalendario(data = getTodayInSaoPaulo()) {
             if (liturgiaNorm.includes('festa')) adicionarCategoria('festa');
             if (liturgiaNorm.includes('memoria')) adicionarCategoria('memoria');
 
-            // Adicionar uma versão tipo slug para comparação direta
-            adicionarCategoria(liturgiaNorm.replace(/[^\w\s-]/g, '').replace(/\s+/g, '-'));
+            // Adicionar variações slug (com e sem o tipo da celebração)
+            const slugCompleto = liturgiaNorm.replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+            adicionarCategoria(slugCompleto);
+
+            const liturgiaSemTipo = liturgiaNorm
+                .replace(/\b(memoria obrigatoria|memoria facultativa|memoria|solenidade|festa)\b/g, '')
+                .replace(/[^\w\s-]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+            const slugSemTipo = liturgiaSemTipo.replace(/[^\w\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+            if (slugSemTipo) {
+                adicionarCategoria(slugSemTipo);
+            }
 
             const categoriasResumo = categorias.map((tokens) => tokens[0]);
             console.log(`📋 Categorias da liturgia:`, categoriasResumo);
@@ -811,7 +822,7 @@ async function obterLinkDoCalendario(data = getTodayInSaoPaulo()) {
                         }
                     });
 
-                    let minimo = Math.max(1, Math.min(3, categorias.length));
+                    let minimo = Math.max(1, Math.ceil(categorias.length * 0.6));
                     if (categorias.length <= 2) {
                         minimo = categorias.length;
                     }
@@ -886,34 +897,52 @@ async function encontrarLinkNaPaginaDoDia(baseUrl, tipoOracao) {
         const j = cheerio.load(html);
         const tipo = (tipoOracao || '').toLowerCase();
 
-        let encontrado = null;
         let melhorMatch = null;
+        let melhorPeso = 0;
         
         j('a').each((_, el) => {
-            const href = j(el).attr('href');
+            const hrefRaw = (j(el).attr('href') || '').trim();
             const texto = j(el).text().toLowerCase().trim();
-            if (!href) return;
+            if (!hrefRaw || hrefRaw.startsWith('#')) return;
 
-            const hrefAbs = href.startsWith('http') ? href : new URL(href, baseUrl).href;
+            let hrefAbs;
+            try {
+                hrefAbs = hrefRaw.startsWith('http') ? hrefRaw : new URL(hrefRaw, baseUrl).href;
+            } catch {
+                return;
+            }
+
+            const hrefLower = hrefAbs.toLowerCase();
+            if (hrefLower.includes('/wp-json/')) return;
             
-            // Verificar se é exatamente o tipo que queremos
             const palavraChaveTipo = tipo === 'vesperas' ? 'vésperas' : tipo;
-            const contemTipo = hrefAbs.includes(`/${tipo}-`) || hrefAbs.includes(`-${tipo}-`) || 
+            const contemTipo = hrefLower.includes(`/${tipo}-`) || hrefLower.includes(`-${tipo}-`) || 
                               texto.includes(palavraChaveTipo) || texto.includes(tipo);
             
-            if (contemTipo) {
-                // Preferir links que contenham "solenidade" no href (mais específicos)
-                if (hrefAbs.includes('solenidade')) {
-                    encontrado = hrefAbs;
-                    console.log(`Link específico encontrado: ${texto.substring(0, 60)} -> ${hrefAbs}`);
-                    return false; // break
-                } else if (!melhorMatch) {
-                    melhorMatch = hrefAbs;
+            if (!contemTipo) return;
+
+            let peso = 1;
+            if (hrefLower.includes('solenidade')) peso += 4;
+            if (tipo === 'vesperas') {
+                if (hrefLower.includes('/i-vesperas-')) {
+                    peso += 5;
+                } else if (hrefLower.includes('/ii-vesperas-')) {
+                    peso += 4;
+                } else if (hrefLower.includes('/vesperas-')) {
+                    peso += 2;
                 }
+            }
+
+            if (!melhorMatch || peso > melhorPeso) {
+                melhorMatch = hrefAbs;
+                melhorPeso = peso;
             }
         });
 
-        return encontrado || melhorMatch;
+        if (melhorMatch) {
+            console.log(`Melhor link encontrado para ${tipo}: ${melhorMatch}`);
+        }
+        return melhorMatch;
     } catch (err) {
         console.error('Falha ao procurar link específico na página do dia:', err.message);
         return null;
