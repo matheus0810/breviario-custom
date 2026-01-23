@@ -2055,7 +2055,40 @@ function obterTempoLiturgico(data = getTodayInSaoPaulo()) {
     return 'tempo-comum';
 }
 
-function obterSemanaDoTempo(data = getTodayInSaoPaulo()) {
+function extrairSemanaDaLiturgia(liturgiaNome = '') {
+    if (!liturgiaNome) return null;
+    const texto = normalizeText(liturgiaNome);
+
+    const matchNumero = texto.match(/(\d+)[\u00aa\u00ba]?\s*semana/);
+    if (matchNumero) {
+        return `${matchNumero[1]}a-semana`;
+    }
+
+    const ordinais = {
+        'primeira': '1',
+        'segunda': '2',
+        'terceira': '3',
+        'quarta': '4',
+        'quinta': '5',
+        'sexta': '6',
+        'setima': '7',
+        'oitava': '8',
+        'nona': '9',
+        'decima': '10'
+    };
+
+    const ordinal = Object.keys(ordinais).find((palavra) => texto.includes(`${palavra} semana`));
+    if (ordinal) {
+        return `${ordinais[ordinal]}a-semana`;
+    }
+
+    return null;
+}
+
+function obterSemanaDoTempo(data = getTodayInSaoPaulo(), liturgiaNome = '') {
+    const semanaApi = extrairSemanaDaLiturgia(liturgiaNome);
+    if (semanaApi) return semanaApi;
+
     const tempo = obterTempoLiturgico(data);
     
     if (tempo === 'advento') {
@@ -2075,7 +2108,7 @@ function obterSemanaDoTempo(data = getTodayInSaoPaulo()) {
     return '1a-semana';
 }
 
-function gerarUrlLiturgia(tipoOracao, data = getTodayInSaoPaulo()) {
+function gerarUrlLiturgia(tipoOracao, data = getTodayInSaoPaulo(), liturgiaNome = '') {
     const diaSemana = obterDiaDaSemana(data);
     
     // Completas: sempre usa apenas o dia da semana
@@ -2085,7 +2118,7 @@ function gerarUrlLiturgia(tipoOracao, data = getTodayInSaoPaulo()) {
     
     // Para Laudes e Vésperas: incluir tempo litúrgico
     const tempo = obterTempoLiturgico(data);
-    const semana = obterSemanaDoTempo(data);
+    const semana = obterSemanaDoTempo(data, liturgiaNome);
     
     // Formato: {tipo}-de-{dia}-da-{semana}-do-{tempo}
     let url = `${tipoOracao}-de-${diaSemana}-da-${semana}`;
@@ -2107,6 +2140,7 @@ app.get('*', async (req, res) => {
         const tipoOracao = req.query.tipo || 'laudes';
         const dataCustom = parseSaoPauloDate(req.query.data);
         const horaAtiva = HORA_OPTIONS.some(option => option.tipo === tipoOracao) ? tipoOracao : 'laudes';
+        let dadosLiturgiaApi = null;
         
         console.log(`Tipo de oração recebido: ${tipoOracao}`);
         
@@ -2216,7 +2250,15 @@ app.get('*', async (req, res) => {
 
         // 3) Terceiro: se não encontrou no calendário ou falhou, gerar URL automática e tentar
         if (!response) {
-            const urlGerada = gerarUrlLiturgia(tipoOracao, dataCustom);
+            // Tentar reaproveitar o texto da liturgia para extrair a semana correta
+            if (!dadosLiturgiaApi) {
+                try {
+                    dadosLiturgiaApi = await obterDadosLiturgiaAPI(dataCustom);
+                } catch (err) {
+                    console.log('Não foi possível obter liturgia da API para gerar slug:', err.message);
+                }
+            }
+            const urlGerada = gerarUrlLiturgia(tipoOracao, dataCustom, dadosLiturgiaApi?.liturgia);
             targetUrl = `${BASE_SITE_URL}${urlGerada}`;
             console.log(`Tentando URL gerada: ${targetUrl}`);
             
@@ -2289,7 +2331,14 @@ app.get('*', async (req, res) => {
         $('link[rel="apple-touch-icon-precomposed"]').remove();
         
         // Buscar dados da API de liturgia
-        const dadosLiturgia = await obterDadosLiturgiaAPI(dataCustom);
+        let dadosLiturgia = dadosLiturgiaApi;
+        if (!dadosLiturgia) {
+            try {
+                dadosLiturgia = await obterDadosLiturgiaAPI(dataCustom);
+            } catch (err) {
+                dadosLiturgia = null;
+            }
+        }
         
         // Adicionar banner com informações litúrgicas
         if (dadosLiturgia) {
