@@ -2120,14 +2120,18 @@ function gerarUrlLiturgia(tipoOracao, data = getTodayInSaoPaulo(), liturgiaNome 
     const tempo = obterTempoLiturgico(data);
     const semana = obterSemanaDoTempo(data, liturgiaNome);
     
-    // Formato: {tipo}-de-{dia}-da-{semana}-do-{tempo}
+    // Formato: {tipo}-de-{dia}-da-{semana}-{preposição}-{tempo}
     let url = `${tipoOracao}-de-${diaSemana}-da-${semana}`;
-    
-    if (tempo !== 'tempo-comum') {
-        url += `-do-${tempo}`;
-    } else {
-        url += `-do-tempo-comum`;
-    }
+
+    const sufixoTempo = {
+        quaresma: 'da-quaresma',
+        pascoa: 'da-pascoa',
+        advento: 'do-advento',
+        natal: 'do-tempo-do-natal',
+        'tempo-comum': 'do-tempo-comum'
+    };
+
+    url += `-${sufixoTempo[tempo] || `do-${tempo}`}`;
     
     return url + '/';
 }
