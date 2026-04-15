@@ -772,8 +772,8 @@ const ORACOES_EUCARISTICAS = [
 
 function buildMainNav(activeSection = 'missa') {
     const sections = [
-        { id: 'liturgia', label: 'Liturgia das Horas', href: '/?tipo=laudes' },
-        { id: 'leituras', label: 'Leituras', href: '/leituras' },
+        { id: 'liturgia', label: 'Liturgia das Horas', href: '/liturgia' },
+        { id: 'leituras', label: 'Leituras', href: '/' },
         { id: 'missa', label: 'Missa', href: '/missa' },
         { id: 'oracoes', label: 'Orações e Formação', href: '/oracoes' }
     ];

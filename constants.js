@@ -1,8 +1,8 @@
 // Constantes compartilhadas entre os módulos
 
 const NAV_SECTIONS = [
-    { id: 'liturgia', label: 'Liturgia das Horas', href: '/?tipo=laudes' },
-    { id: 'leituras', label: 'Leituras', href: '/leituras' },
+    { id: 'liturgia', label: 'Liturgia das Horas', href: '/liturgia' },
+    { id: 'leituras', label: 'Leituras', href: '/' },
     { id: 'missa', label: 'Missa', href: '/missa' },
     { id: 'oracoes', label: 'Orações e Formação', href: '/oracoes' }
 ];

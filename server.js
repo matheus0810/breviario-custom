@@ -21,14 +21,15 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
 // Usar routers
+app.use('/liturgia', liturgiaRouter);
 app.use('/leituras', leiturasRouter);
 app.use('/missa', missaRouter);
 app.use('/oracoes', oracoesRouter);
-app.use('/', liturgiaRouter);
+app.use('/', leiturasRouter);
 
 const NAV_SECTIONS = [
-    { id: 'liturgia', label: 'Liturgia das Horas', href: '/?tipo=laudes' },
-    { id: 'leituras', label: 'Leituras', href: '/leituras' },
+    { id: 'liturgia', label: 'Liturgia das Horas', href: '/liturgia' },
+    { id: 'leituras', label: 'Leituras', href: '/' },
     { id: 'missa', label: 'Missa', href: '/missa' },
     { id: 'oracoes', label: 'Orações e Formação', href: '/oracoes' }
 ];
@@ -2435,7 +2436,7 @@ app.get('*', async (req, res) => {
                     <p>Não foi possível carregar a liturgia para hoje.</p>
                     <p>Erro: ${error.message}</p>
                     <a href="/">🔄 Tentar novamente</a>
-                    <a href="/?tipo=laudes">📖 Ir para Laudes</a>
+                    <a href="/liturgia">📖 Ir para Liturgia</a>
                 </div>
             </body>
             </html>
@@ -2446,7 +2447,7 @@ app.get('*', async (req, res) => {
 app.listen(PORT, () => {
     console.log(`\n🙏 Liturgia Católica rodando em: http://localhost:${PORT}`);
     console.log(`\n📖 Liturgia das Horas:`);
-    console.log(`   Laudes: http://localhost:${PORT}/?tipo=laudes`);
+    console.log(`   Liturgia: http://localhost:${PORT}/liturgia`);
     console.log(`   Vésperas: http://localhost:${PORT}/?tipo=vesperas`);
     console.log(`   Completas: http://localhost:${PORT}/?tipo=completas`);
     console.log(`\n📚 Outras seções:`);
