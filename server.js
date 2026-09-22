@@ -42,8 +42,8 @@ const HORA_OPTIONS = [
     { tipo: 'completas', label: 'Completas', periodo: 'Noite' }
 ];
 // URLs do site liturgiadashoras (usadas por rotas que fazem scraping)
-const CALENDARIO_URL = 'https://liturgiadashoras.online/calendario/';
-const BASE_SITE_URL = 'https://liturgiadashoras.online/';
+const CALENDARIO_URL = 'https://www.liriocatolico.com.br/liturgia_horas/?data=2026-09-22&hora=terca';
+const BASE_SITE_URL = 'https://www.liriocatolico.com.br/';
 
 const ORACOES_EUCARISTICAS = [
     {
@@ -786,18 +786,18 @@ const BASE_STYLES = `
     }
 
     .main-nav {
-        background: var(--surface-color);
-        border-bottom: 1px solid var(--border-color);
-        padding: 16px 0;
+        background: #e7dfd1;
+        border-bottom: 1px solid #d7c8af;
+        padding: 0;
         position: sticky;
         top: 0;
         z-index: 100;
     }
 
     .nav-container {
-        max-width: 960px;
+        max-width: 1100px;
         margin: 0 auto;
-        padding: 0 20px;
+        padding: 10px 20px 12px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -806,112 +806,124 @@ const BASE_STYLES = `
 
     .nav-brand {
         font-size: 1.1rem;
-        font-weight: 600;
-        color: var(--text-color);
+        font-weight: 700;
+        color: var(--primary-color);
         text-decoration: none;
+        letter-spacing: -0.02em;
     }
 
     .nav-menu {
         display: flex;
-        gap: 8px;
+        gap: 4px;
         flex-wrap: wrap;
+        justify-content: center;
+        align-items: center;
+        margin: 0 auto;
+        padding: 0;
+        list-style: none;
     }
 
-    .nav-item {
-        padding: 8px 14px;
-        border-radius: 999px;
+    .nav-item,
+    .nav-link {
+        padding: 10px 12px;
         text-decoration: none;
-        color: var(--muted-color);
-        font-size: 0.95rem;
+        color: var(--text-color);
+        font-size: 0.96rem;
         font-weight: 500;
-        border: 1px solid transparent;
+        border-bottom: 3px solid transparent;
         transition: all 0.2s ease;
     }
 
-    .nav-item:hover {
-        border-color: var(--border-color);
-        color: var(--text-color);
+    .nav-item:hover,
+    .nav-link:hover {
+        color: var(--primary-color);
     }
 
-    .nav-item.active {
-        background: var(--accent-light);
-        border-color: var(--accent-color);
-        color: var(--accent-color);
+    .nav-item.active,
+    .nav-link.active {
+        color: var(--primary-color);
+        border-bottom-color: var(--primary-color);
+        font-weight: 700;
     }
 
     .hours-selector {
-        background: #fffaf3;
-        border-bottom: 1px solid var(--border-color);
+        background: #e9e1d5;
+        border-bottom: 1px solid #d7c8af;
     }
 
     .selector-container {
-        max-width: 960px;
+        max-width: 1100px;
         margin: 0 auto;
-        padding: 14px 20px;
+        padding: 12px 20px;
         display: flex;
+        justify-content: center;
         flex-wrap: wrap;
-        gap: 12px;
+        gap: 18px;
     }
 
     .liturgia-info-banner {
-        background: linear-gradient(135deg, #f4e1c1 0%, #e4d8c6 100%);
-        border-bottom: 2px solid var(--accent-color);
-        padding: 16px 20px;
+        background: #e7dfd2;
+        border-bottom: 1px solid #d7c8af;
+        padding: 14px 0;
     }
 
     .liturgia-info-container {
-        max-width: 960px;
+        max-width: 1100px;
         margin: 0 auto;
         display: flex;
         flex-wrap: wrap;
-        gap: 24px;
+        justify-content: center;
+        gap: 26px;
         align-items: center;
+        padding: 0 20px;
     }
 
     .liturgia-info-item {
         display: flex;
-        flex-direction: column;
-        gap: 4px;
+        align-items: center;
+        gap: 8px;
+        color: var(--text-color);
+        font-size: 0.96rem;
     }
 
     .liturgia-info-label {
-        font-size: 0.75rem;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--muted-color);
-        font-weight: 600;
+        font-size: 0.82rem;
+        text-transform: none;
+        letter-spacing: 0.02em;
+        color: var(--primary-color);
+        font-weight: 700;
     }
 
     .liturgia-info-value {
-        font-size: 0.95rem;
+        font-size: 0.96rem;
         color: var(--text-color);
-        font-weight: 500;
+        font-weight: 600;
     }
 
     .hour-chip {
-        flex: 1;
-        min-width: 180px;
+        flex: 0 0 auto;
         text-decoration: none;
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        padding: 12px 16px;
+        border-bottom: 3px solid transparent;
+        padding: 8px 10px;
         color: var(--text-color);
-        background: var(--surface-color);
+        background: transparent;
         display: flex;
-        flex-direction: column;
-        gap: 4px;
+        align-items: center;
+        gap: 8px;
         transition: all 0.2s ease;
     }
 
     .hour-chip small {
         color: var(--muted-color);
-        font-size: 0.8rem;
+        font-size: 0.72rem;
     }
 
     .hour-chip.active {
-        border-color: var(--accent-color);
-        background: var(--accent-light);
-        box-shadow: 0 6px 16px rgba(140, 92, 44, 0.15);
+        border-bottom-color: var(--primary-color);
+        color: var(--primary-color);
+        font-weight: 700;
+        background: transparent;
+        box-shadow: none;
     }
 
     .wp-site-blocks,
