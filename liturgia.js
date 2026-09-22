@@ -30,6 +30,20 @@ const HORA_LABELS = {
 
 const INVITATORIO_DATA = '2026-09-22';
 const INVITATORIO_INDEX_URL = 'https://www.liriocatolico.com.br/liturgia_horas/dados/invitatorio.json';
+const LIRIO_PROXY_PREFIX = 'https://r.jina.ai/http://';
+
+function buildLirioProxyUrl(url) {
+    return `${LIRIO_PROXY_PREFIX}${url.replace(/^https?:\/\//, '')}`;
+}
+
+async function fetchLirioJson(url) {
+    const response = await fetch(buildLirioProxyUrl(url));
+    if (!response.ok) throw new Error(`Falha ao carregar ${url}`);
+    const text = await response.text();
+    const marker = 'Markdown Content:';
+    const json = text.slice(text.indexOf(marker) + marker.length).trim();
+    return JSON.parse(json);
+}
 
 function getDataHoje() {
     const hoje = new Date();
@@ -119,14 +133,7 @@ router.get('/', async (req, res) => {
 
     let dadosLiturgia = null;
     try {
-        const resp = await fetch(lirioJsonUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
-            }
-        });
-        if (resp.ok) {
-            dadosLiturgia = await resp.json();
-        }
+        dadosLiturgia = await fetchLirioJson(lirioJsonUrl);
     } catch (e) {
         dadosLiturgia = null;
     }
@@ -167,12 +174,9 @@ router.get('/', async (req, res) => {
             let htmlHora = horaSelecionada.html;
             if (horaParam === 'invitatorio') {
                 try {
-                    const indiceResponse = await fetch(INVITATORIO_INDEX_URL);
-                    if (indiceResponse.ok) {
-                        const indice = await indiceResponse.json();
-                        const salmoSemEstrofe = horaSelecionada.salmos.find((salmo) => salmo.id === '94s');
-                        htmlHora = indice[salmoSemEstrofe.texto_id] || htmlHora;
-                    }
+                    const indice = await fetchLirioJson(INVITATORIO_INDEX_URL);
+                    const salmoSemEstrofe = horaSelecionada.salmos.find((salmo) => salmo.id === '94s');
+                    htmlHora = indice[salmoSemEstrofe.texto_id] || htmlHora;
                 } catch (e) {
                     htmlHora = horaSelecionada.html;
                 }
@@ -368,20 +372,23 @@ router.get('/', async (req, res) => {
                     </section>
                     <script>
                         (async function () {
-                            const endpoint = ${JSON.stringify(lirioJsonUrl)};
+                            const endpoint = ${JSON.stringify(buildLirioProxyUrl(lirioJsonUrl))};
                             const hora = ${JSON.stringify(horaParam)};
                             const fallback = document.getElementById('liturgia-fallback');
                             try {
-                                const response = await fetch(endpoint, { headers: { Accept: 'application/json' } });
+                                const response = await fetch(endpoint);
                                 if (!response.ok) throw new Error('Não foi possível obter a liturgia.');
-                                const dados = await response.json();
+                                const bruto = await response.text();
+                                const dados = JSON.parse(bruto.slice(bruto.indexOf('Markdown Content:') + 'Markdown Content:'.length).trim());
                                 const horaSelecionada = (dados.horas || []).find(item => item.slug === hora);
                                 if (!horaSelecionada || !horaSelecionada.html) throw new Error('Hora não encontrada.');
                                 const tabs = fallback.querySelector('.liturgia-tabs');
                                 let htmlHora = horaSelecionada.html;
                                 let controles = '';
                                 if (hora === 'invitatorio') {
-                                    const indice = await fetch(${JSON.stringify(INVITATORIO_INDEX_URL)}).then(item => item.json());
+                                    const indiceResponse = await fetch(${JSON.stringify(buildLirioProxyUrl(INVITATORIO_INDEX_URL))});
+                                    const indiceBruto = await indiceResponse.text();
+                                    const indice = JSON.parse(indiceBruto.slice(indiceBruto.indexOf('Markdown Content:') + 'Markdown Content:'.length).trim());
                                     const salmos = (horaSelecionada.salmos || []).filter(item => !item.estrofe);
                                     const padrao = salmos.find(item => item.id === '94s');
                                     htmlHora = indice[padrao && padrao.texto_id] || htmlHora;
@@ -414,11 +421,13 @@ router.get('/', async (req, res) => {
                     if (!select || !content) return;
                     try {
                         const [diaResponse, indiceResponse] = await Promise.all([
-                            fetch(${JSON.stringify(lirioJsonUrl)}),
-                            fetch(${JSON.stringify(INVITATORIO_INDEX_URL)})
+                            fetch(${JSON.stringify(buildLirioProxyUrl(lirioJsonUrl))}),
+                            fetch(${JSON.stringify(buildLirioProxyUrl(INVITATORIO_INDEX_URL))})
                         ]);
-                        const dados = await diaResponse.json();
-                        const indice = await indiceResponse.json();
+                        const diaBruto = await diaResponse.text();
+                        const indiceBruto = await indiceResponse.text();
+                        const dados = JSON.parse(diaBruto.slice(diaBruto.indexOf('Markdown Content:') + 'Markdown Content:'.length).trim());
+                        const indice = JSON.parse(indiceBruto.slice(indiceBruto.indexOf('Markdown Content:') + 'Markdown Content:'.length).trim());
                         const hora = (dados.horas || []).find(item => item.slug === 'invitatorio');
                         const salmos = (hora && hora.salmos || []).filter(item => !item.estrofe);
                         select.innerHTML = salmos.map(item => '<option value="' + item.texto_id + '"' + (item.id === '94s' ? ' selected' : '') + '>' + item.rotulo + '</option>').join('');
