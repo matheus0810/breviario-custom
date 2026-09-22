@@ -304,7 +304,7 @@ router.get('/', async (req, res) => {
             ${bannerHTML}
             <main class="liturgia-container">
                 ${conteudoExterno || `
-                    <section class="liturgia-externa">
+                    <section class="liturgia-externa" id="liturgia-fallback">
                         <div class="liturgia-subheader">
                             <div class="liturgia-cabecalho-hora">
                                 <strong>${HORA_LABELS[horaParam] || 'Laudes'}</strong>
@@ -318,6 +318,29 @@ router.get('/', async (req, res) => {
                             <a href="${lirioUrl}" target="_blank" rel="noopener noreferrer">Abrir no site do Lírio Católico</a>
                         </div>
                     </section>
+                    <script>
+                        (async function () {
+                            const endpoint = ${JSON.stringify(lirioJsonUrl)};
+                            const hora = ${JSON.stringify(horaParam)};
+                            const fallback = document.getElementById('liturgia-fallback');
+                            try {
+                                const response = await fetch(endpoint, { headers: { Accept: 'application/json' } });
+                                if (!response.ok) throw new Error('Não foi possível obter a liturgia.');
+                                const dados = await response.json();
+                                const horaSelecionada = (dados.horas || []).find(item => item.slug === hora);
+                                if (!horaSelecionada || !horaSelecionada.html) throw new Error('Hora não encontrada.');
+                                const tabs = fallback.querySelector('.liturgia-tabs');
+                                fallback.innerHTML = '<div class="liturgia-subheader">' +
+                                    '<div class="liturgia-cabecalho-hora"><strong>' +
+                                    ${JSON.stringify(HORA_LABELS[horaParam] || 'Laudes')} +
+                                    '</strong><span> · ' + (dados.data || ${JSON.stringify(dataParam)}) + '</span></div>' +
+                                    '<div class="liturgia-tabs">' + (tabs ? tabs.innerHTML : '') + '</div></div>' +
+                                    horaSelecionada.html;
+                            } catch (error) {
+                                console.error('Falha ao carregar a liturgia no navegador:', error);
+                            }
+                        }());
+                    </script>
                 `}
             </main>
         </body>
