@@ -1,6 +1,5 @@
 const express = require('express');
-const fetch = require('node-fetch');
-const cheerio = require('cheerio');
+const fetch = global.fetch || require('node-fetch');
 
 const { BASE_STYLES } = require('./constants');
 
@@ -103,7 +102,7 @@ router.get('/', async (req, res) => {
     const lirioUrl = buildLirioUrl(dataParam, horaParam);
     const lirioJsonUrl = buildLirioJsonUrl(dataParam, horaParam);
 
-    let bannerHTML = '';
+    let dadosLiturgia = null;
     try {
         const resp = await fetch(lirioJsonUrl, {
             headers: {
@@ -111,7 +110,16 @@ router.get('/', async (req, res) => {
             }
         });
         if (resp.ok) {
-            const dados = await resp.json();
+            dadosLiturgia = await resp.json();
+        }
+    } catch (e) {
+        dadosLiturgia = null;
+    }
+
+    let bannerHTML = '';
+    if (dadosLiturgia) {
+        const dados = dadosLiturgia;
+        try {
             bannerHTML = `
                 <div class="liturgia-info-banner">
                     <div class="liturgia-info-container">
@@ -130,41 +138,30 @@ router.get('/', async (req, res) => {
                     </div>
                 </div>
             `;
+        } catch (e) {
+            bannerHTML = '';
         }
-    } catch (e) {
-        bannerHTML = '';
     }
 
     let conteudoExterno = '';
-    try {
-        const response = await fetch(lirioJsonUrl, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36'
-            }
-        });
+    if (dadosLiturgia) {
+        const horas = Array.isArray(dadosLiturgia.horas) ? dadosLiturgia.horas : [];
+        const horaSelecionada = horas.find((hora) => hora.slug === horaParam) || horas.find((hora) => hora.slug === 'laudes') || horas[0];
 
-        if (response.ok) {
-            const dados = await response.json();
-            const horas = Array.isArray(dados.horas) ? dados.horas : [];
-            const horaSelecionada = horas.find((hora) => hora.slug === horaParam) || horas.find((hora) => hora.slug === 'laudes') || horas[0];
-
-            if (horaSelecionada && horaSelecionada.html) {
-                conteudoExterno = `
-                    <div class="liturgia-externa">
-                        <div class="liturgia-subheader">
-                            <div class="liturgia-cabecalho-hora">
-                                <strong>${HORA_LABELS[horaParam] || 'Laudes'}</strong>
-                                <span> · ${dados.data || dataParam}</span>
-                            </div>
-                            <div class="liturgia-tabs">${renderHourTabs(dataParam, horaParam)}</div>
+        if (horaSelecionada && horaSelecionada.html) {
+            conteudoExterno = `
+                <div class="liturgia-externa">
+                    <div class="liturgia-subheader">
+                        <div class="liturgia-cabecalho-hora">
+                            <strong>${HORA_LABELS[horaParam] || 'Laudes'}</strong>
+                            <span> · ${dadosLiturgia.data || dataParam}</span>
                         </div>
-                        ${horaSelecionada.html}
+                        <div class="liturgia-tabs">${renderHourTabs(dataParam, horaParam)}</div>
                     </div>
-                `;
-            }
+                    ${horaSelecionada.html}
+                </div>
+            `;
         }
-    } catch (e) {
-        conteudoExterno = '';
     }
 
     res.send(`

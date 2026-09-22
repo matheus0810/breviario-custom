@@ -2456,16 +2456,20 @@ app.get('*', async (req, res) => {
     }
 });
 
-app.listen(PORT, () => {
-    console.log(`\n🙏 Liturgia Católica rodando em: http://localhost:${PORT}`);
-    console.log(`\n📖 Liturgia das Horas:`);
-    console.log(`   Liturgia: http://localhost:${PORT}/liturgia`);
-    console.log(`   Vésperas: http://localhost:${PORT}/?tipo=vesperas`);
-    console.log(`   Completas: http://localhost:${PORT}/?tipo=completas`);
-    console.log(`\n📚 Outras seções:`);
-    console.log(`   Leituras: http://localhost:${PORT}/leituras`);
-    console.log(`   Missa: http://localhost:${PORT}/missa\n`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`\n🙏 Liturgia Católica rodando em: http://localhost:${PORT}`);
+        console.log(`\n📖 Liturgia das Horas:`);
+        console.log(`   Liturgia: http://localhost:${PORT}/liturgia`);
+        console.log(`   Vésperas: http://localhost:${PORT}/?tipo=vesperas`);
+        console.log(`   Completas: http://localhost:${PORT}/?tipo=completas`);
+        console.log(`\n📚 Outras seções:`);
+        console.log(`   Leituras: http://localhost:${PORT}/leituras`);
+        console.log(`   Missa: http://localhost:${PORT}/missa\n`);
+    });
+}
+
+module.exports = app;
 
 
 
