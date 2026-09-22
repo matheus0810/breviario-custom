@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^node -e \"const fetch=require\\('node-fetch'\\); const cheerio=require\\('cheerio'\\); \\(async\\(\\)=>\\{const html=await fetch\\('https://www\\.liriocatolico\\.com\\.br/liturgia_horas/\\?data=2026-09-22&hora=completas'\\)\\.then\\(r=>r\\.text\\(\\)\\); const \\$=cheerio\\.load\\(html\\); console\\.log\\('buttons', \\$\\('button'\\)\\.map\\(\\(i,e\\)=>\\$\\(e\\)\\.text\\(\\)\\.trim\\(\\)\\)\\.get\\(\\)\\.filter\\(Boolean\\)\\.slice\\(0,30\\)\\); console\\.log\\('links', \\$\\('a'\\)\\.map\\(\\(i,e\\)=>\\$\\(e\\)\\.text\\(\\)\\.trim\\(\\)\\)\\.get\\(\\)\\.filter\\(Boolean\\)\\.slice\\(0,30\\)\\); const text=\\$\\('main'\\)\\.text\\(\\); for\\(const term of \\['Exame de Consciência','Ato Penitencial','FÓRMULAS DO ATO PENITENCIAL'\\]\\) \\{const i=text\\.indexOf\\(term\\); console\\.log\\(term,i,text\\.slice\\(Math\\.max\\(0,i-250\\),i\\+800\\)\\.replace\\(/\\\\s\\+/g,' '\\)\\);\\}\\}\\)\\(\\)\\.catch\\(e=>console\\.error\\(e\\)\\);\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

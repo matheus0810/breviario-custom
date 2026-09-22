@@ -30,6 +30,7 @@ const HORA_LABELS = {
 
 const INVITATORIO_DATA = '2026-09-22';
 const INVITATORIO_INDEX_URL = 'https://www.liriocatolico.com.br/liturgia_horas/dados/invitatorio.json';
+const EXTRAS_INDEX_URL = 'https://www.liriocatolico.com.br/liturgia_horas/dados/extras.json';
 const LIRIO_PROXY_PREFIX = 'https://r.jina.ai/http://';
 
 function buildLirioProxyUrl(url) {
@@ -169,6 +170,19 @@ router.get('/', async (req, res) => {
     if (dadosLiturgia) {
         const horas = Array.isArray(dadosLiturgia.horas) ? dadosLiturgia.horas : [];
         const horaSelecionada = horas.find((hora) => hora.slug === horaParam) || horas.find((hora) => hora.slug === 'laudes') || horas[0];
+        let extrasCompletas = null;
+
+        if (horaParam === 'completas') {
+            try {
+                const extras = await fetchLirioJson(EXTRAS_INDEX_URL);
+                extrasCompletas = {
+                    exame: extras['oficio/outros/exameconsciencia.htm']?.html || '',
+                    penitencial: extras['oficio/outros/atopenitencial.htm']?.html || ''
+                };
+            } catch (e) {
+                extrasCompletas = null;
+            }
+        }
 
         if (horaSelecionada && horaSelecionada.html) {
             let htmlHora = horaSelecionada.html;
@@ -193,6 +207,21 @@ router.get('/', async (req, res) => {
                     </div>
                     ${horaParam === 'invitatorio' ? renderInvitatorioControls(horaSelecionada.salmos) : ''}
                     <div id="conteudo-hora">${htmlHora}</div>
+                    ${horaParam === 'completas' && extrasCompletas ? `
+                        <div class="liturgia-modais" data-modais='${JSON.stringify(extrasCompletas).replace(/'/g, '&#39;')}'>
+                            <button type="button" class="liturgia-modal-link" data-modal="exame">Exame de Consciência</button>
+                            <button type="button" class="liturgia-modal-link" data-modal="penitencial">Ato Penitencial</button>
+                        </div>
+                        <div class="liturgia-modal" id="liturgia-modal" hidden>
+                            <div class="liturgia-modal-caixa" role="dialog" aria-modal="true" aria-labelledby="liturgia-modal-titulo">
+                                <div class="liturgia-modal-topo">
+                                    <h2 id="liturgia-modal-titulo"></h2>
+                                    <button type="button" class="liturgia-modal-fechar" aria-label="Fechar">&times;</button>
+                                </div>
+                                <div class="liturgia-modal-corpo" id="liturgia-modal-corpo"></div>
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
             `;
         }
@@ -318,6 +347,77 @@ router.get('/', async (req, res) => {
                 .liturgia-externa a {
                     color: var(--primary-color);
                 }
+                .liturgia-modais {
+                    display: flex;
+                    flex-wrap: wrap;
+                    gap: 10px;
+                    margin: 16px 0 24px;
+                }
+                .liturgia-modal-link {
+                    border: 1px solid rgba(141, 61, 27, 0.35);
+                    border-radius: 8px;
+                    background: #fffaf3;
+                    color: #8d3d1b;
+                    cursor: pointer;
+                    font: 700 0.95rem Georgia, 'Times New Roman', serif;
+                    padding: 9px 14px;
+                }
+                .liturgia-modal-link:hover {
+                    background: #f3e4d2;
+                }
+                .liturgia-modal {
+                    position: fixed;
+                    inset: 0;
+                    z-index: 20;
+                    display: grid;
+                    place-items: center;
+                    padding: 18px;
+                    background: rgba(30, 22, 16, 0.58);
+                }
+                .liturgia-modal[hidden] {
+                    display: none;
+                }
+                .liturgia-modal-caixa {
+                    width: min(620px, 100%);
+                    max-height: min(90vh, 900px);
+                    overflow: hidden;
+                    border-radius: 12px;
+                    background: #fffdf9;
+                    box-shadow: 0 18px 60px rgba(25, 16, 9, 0.28);
+                }
+                .liturgia-modal-topo {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 16px;
+                    border-bottom: 1px solid #eadcc9;
+                    padding: 14px 18px;
+                }
+                .liturgia-modal-topo h2 {
+                    margin: 0;
+                    color: #8d3d1b;
+                    font-size: 1rem;
+                }
+                .liturgia-modal-fechar {
+                    border: 1px solid #eadcc9;
+                    border-radius: 6px;
+                    background: #fff;
+                    color: #38261a;
+                    cursor: pointer;
+                    font-size: 1.35rem;
+                    line-height: 1;
+                    padding: 4px 9px;
+                }
+                .liturgia-modal-corpo {
+                    max-height: calc(min(90vh, 900px) - 70px);
+                    overflow-y: auto;
+                    padding: 20px 24px 28px;
+                    text-align: center;
+                }
+                .liturgia-modal-corpo p,
+                .liturgia-modal-corpo div {
+                    line-height: 1.65;
+                }
                 .liturgia-externa button,
                 .liturgia-externa .wp-block-button,
                 .liturgia-externa .wp-block-buttons {
@@ -415,6 +515,36 @@ router.get('/', async (req, res) => {
                 `}
             </main>
             <script>
+                (function () {
+                    const modal = document.getElementById('liturgia-modal');
+                    if (!modal) return;
+                    const dados = JSON.parse(modal.previousElementSibling.dataset.modais.replace(/&#39;/g, "'"));
+                    const titulo = document.getElementById('liturgia-modal-titulo');
+                    const corpo = document.getElementById('liturgia-modal-corpo');
+                    const fechar = () => { modal.hidden = true; };
+                    const abrir = (exame) => {
+                            titulo.textContent = exame ? 'Exame de Consciência' : 'Ato Penitencial';
+                            corpo.innerHTML = exame ? dados.exame : dados.penitencial;
+                            modal.hidden = false;
+                            corpo.scrollTop = 0;
+                    };
+                    document.querySelectorAll('.liturgia-modal-link').forEach((botao) => {
+                        botao.addEventListener('click', () => abrir(botao.dataset.modal === 'exame'));
+                    });
+                    document.querySelectorAll('.lh-extra').forEach((link) => {
+                        link.addEventListener('click', (evento) => {
+                            evento.preventDefault();
+                            abrir(link.dataset.url === 'oficio/outros/exameconsciencia.htm');
+                        });
+                    });
+                    modal.addEventListener('click', (evento) => {
+                        if (evento.target === modal || evento.target.closest('.liturgia-modal-fechar')) fechar();
+                    });
+                    document.addEventListener('keydown', (evento) => {
+                        if (evento.key === 'Escape' && !modal.hidden) fechar();
+                    });
+                }());
+
                 (async function () {
                     const select = document.getElementById('salmo-invitatorio');
                     const content = document.getElementById('conteudo-hora');
