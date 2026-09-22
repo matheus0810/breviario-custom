@@ -29,6 +29,7 @@ const HORA_LABELS = {
 };
 
 const INVITATORIO_DATA = '2026-09-22';
+const INVITATORIO_INDEX_URL = 'https://www.liriocatolico.com.br/liturgia_horas/dados/invitatorio.json';
 
 function getDataHoje() {
     const hoje = new Date();
@@ -61,6 +62,20 @@ function renderHourTabs(dataParam, horaAtiva) {
     return HORA_ORDER.map((hora) => `
         <a class="liturgia-tab ${hora === horaAtiva ? 'active' : ''}" href="/liturgia?data=${dataParam}&hora=${hora}">${HORA_LABELS[hora]}</a>
     `).join('');
+}
+
+function renderInvitatorioControls(salmos = []) {
+    const opcoes = salmos
+        .filter((salmo) => !salmo.estrofe)
+        .map((salmo) => `<option value="${salmo.texto_id}"${salmo.id === '94s' ? ' selected' : ''}>${salmo.rotulo}</option>`)
+        .join('');
+
+    return `
+        <div class="invitatório-controles">
+            <label for="salmo-invitatorio">Salmo do Invitatório</label>
+            <select id="salmo-invitatorio">${opcoes}</select>
+        </div>
+    `;
 }
 
 const NAV_SECTIONS = [
@@ -149,6 +164,20 @@ router.get('/', async (req, res) => {
         const horaSelecionada = horas.find((hora) => hora.slug === horaParam) || horas.find((hora) => hora.slug === 'laudes') || horas[0];
 
         if (horaSelecionada && horaSelecionada.html) {
+            let htmlHora = horaSelecionada.html;
+            if (horaParam === 'invitatorio') {
+                try {
+                    const indiceResponse = await fetch(INVITATORIO_INDEX_URL);
+                    if (indiceResponse.ok) {
+                        const indice = await indiceResponse.json();
+                        const salmoSemEstrofe = horaSelecionada.salmos.find((salmo) => salmo.id === '94s');
+                        htmlHora = indice[salmoSemEstrofe.texto_id] || htmlHora;
+                    }
+                } catch (e) {
+                    htmlHora = horaSelecionada.html;
+                }
+            }
+
             conteudoExterno = `
                 <div class="liturgia-externa">
                     <div class="liturgia-subheader">
@@ -158,7 +187,8 @@ router.get('/', async (req, res) => {
                         </div>
                         <div class="liturgia-tabs">${renderHourTabs(dataParam, horaParam)}</div>
                     </div>
-                    ${horaSelecionada.html}
+                    ${horaParam === 'invitatorio' ? renderInvitatorioControls(horaSelecionada.salmos) : ''}
+                    <div id="conteudo-hora">${htmlHora}</div>
                 </div>
             `;
         }
@@ -199,6 +229,23 @@ router.get('/', async (req, res) => {
                     display: flex;
                     flex-wrap: wrap;
                     gap: 10px;
+                }
+                .invitatório-controles {
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    margin: 4px 0 22px;
+                    color: var(--primary-color);
+                    font-weight: 700;
+                }
+                .invitatório-controles select {
+                    min-width: 170px;
+                    padding: 8px 10px;
+                    border: 1px solid rgba(131, 80, 38, 0.35);
+                    border-radius: 8px;
+                    background: #fff;
+                    color: var(--text-color);
+                    font: inherit;
                 }
                 .liturgia-tab {
                     display: inline-flex;
@@ -312,6 +359,7 @@ router.get('/', async (req, res) => {
                             </div>
                             <div class="liturgia-tabs">${renderHourTabs(dataParam, horaParam)}</div>
                         </div>
+                        ${horaParam === 'invitatorio' ? '<div class="invitatório-controles"><label for="salmo-invitatorio">Salmo do Invitatório</label><select id="salmo-invitatorio"></select></div>' : ''}
                         <h1>Liturgia das Horas</h1>
                         <p>Não foi possível carregar o conteúdo completo desta hora no momento.</p>
                         <div class="liturgia-action">
@@ -330,12 +378,28 @@ router.get('/', async (req, res) => {
                                 const horaSelecionada = (dados.horas || []).find(item => item.slug === hora);
                                 if (!horaSelecionada || !horaSelecionada.html) throw new Error('Hora não encontrada.');
                                 const tabs = fallback.querySelector('.liturgia-tabs');
+                                let htmlHora = horaSelecionada.html;
+                                let controles = '';
+                                if (hora === 'invitatorio') {
+                                    const indice = await fetch(${JSON.stringify(INVITATORIO_INDEX_URL)}).then(item => item.json());
+                                    const salmos = (horaSelecionada.salmos || []).filter(item => !item.estrofe);
+                                    const padrao = salmos.find(item => item.id === '94s');
+                                    htmlHora = indice[padrao && padrao.texto_id] || htmlHora;
+                                    controles = '<div class="invitatório-controles"><label for="salmo-invitatorio">Salmo do Invitatório</label><select id="salmo-invitatorio">' +
+                                        salmos.map(item => '<option value="' + item.texto_id + '"' + (item.id === '94s' ? ' selected' : '') + '>' + item.rotulo + '</option>').join('') +
+                                        '</select></div>';
+                                }
                                 fallback.innerHTML = '<div class="liturgia-subheader">' +
                                     '<div class="liturgia-cabecalho-hora"><strong>' +
                                     ${JSON.stringify(HORA_LABELS[horaParam] || 'Laudes')} +
                                     '</strong><span> · ' + (dados.data || ${JSON.stringify(dataParam)}) + '</span></div>' +
                                     '<div class="liturgia-tabs">' + (tabs ? tabs.innerHTML : '') + '</div></div>' +
-                                    horaSelecionada.html;
+                                    controles + '<div id="conteudo-hora">' + htmlHora + '</div>';
+                                const select = document.getElementById('salmo-invitatorio');
+                                const content = document.getElementById('conteudo-hora');
+                                if (select && content) {
+                                    select.addEventListener('change', () => { content.innerHTML = indice[select.value] || content.innerHTML; });
+                                }
                             } catch (error) {
                                 console.error('Falha ao carregar a liturgia no navegador:', error);
                             }
@@ -343,6 +407,29 @@ router.get('/', async (req, res) => {
                     </script>
                 `}
             </main>
+            <script>
+                (async function () {
+                    const select = document.getElementById('salmo-invitatorio');
+                    const content = document.getElementById('conteudo-hora');
+                    if (!select || !content) return;
+                    try {
+                        const [diaResponse, indiceResponse] = await Promise.all([
+                            fetch(${JSON.stringify(lirioJsonUrl)}),
+                            fetch(${JSON.stringify(INVITATORIO_INDEX_URL)})
+                        ]);
+                        const dados = await diaResponse.json();
+                        const indice = await indiceResponse.json();
+                        const hora = (dados.horas || []).find(item => item.slug === 'invitatorio');
+                        const salmos = (hora && hora.salmos || []).filter(item => !item.estrofe);
+                        select.innerHTML = salmos.map(item => '<option value="' + item.texto_id + '"' + (item.id === '94s' ? ' selected' : '') + '>' + item.rotulo + '</option>').join('');
+                        const pintar = () => { content.innerHTML = indice[select.value] || content.innerHTML; };
+                        select.addEventListener('change', pintar);
+                        pintar();
+                    } catch (error) {
+                        console.error('Falha ao carregar as opções do Invitatório:', error);
+                    }
+                }());
+            </script>
         </body>
         </html>
     `);
