@@ -429,6 +429,18 @@ router.get('/', (req, res) => {
 router.get('/:id', (req, res) => {
     const { id } = req.params;
     const nav = buildMainNav('oracoes');
+    const createFaqEntry = (id, question, keywords, shortAnswer, scripture, patristic, magisterium, quote, quoteSource, module) => ({
+        id,
+        question,
+        keywords,
+        shortAnswer,
+        scripture,
+        patristic,
+        magisterium,
+        quote,
+        quoteSource,
+        module
+    });
 
     // Dados das orações básicas
     const prayersData = {
@@ -1359,9 +1371,9 @@ router.get('/:id', (req, res) => {
                 },
                 {
                     id: 'ocultismo-reiki',
-                    question: 'O que o católico deve saber sobre horóscopo, tarô, astrologia e Reiki?',
-                    keywords: 'horóscopo tarot tarô astrologia adivinhação Reiki energia superstição',
-                    shortAnswer: ['A Igreja rejeita a adivinhação e a tentativa de controlar o futuro por práticas ocultas, pois são incompatíveis com a confiança em Deus. Horóscopos e tarô não devem orientar decisões como se revelassem um destino inevitável.', 'Reiki é uma prática moderna, não tratada pelos textos antigos. A Igreja adverte contra atribuir poder espiritual ou cura a uma energia impessoal; decisões de saúde devem recorrer a profissionais qualificados, e práticas de relaxamento não substituem tratamento médico.'],
+                    question: 'Por que o católico não deve consultar horóscopo, tarô ou mapa astral?',
+                    keywords: 'horóscopo tarot tarô mapa astral astrologia adivinhação Reiki energia superstição esoterismo',
+                    shortAnswer: ['O Catecismo rejeita a adivinhação e a tentativa de obter orientação espiritual por astrologia ou tarô, pois a vida cristã se apoia na liberdade, na providência e na confiança em Deus. Ler algo por curiosidade não permite, por si só, julgar a consciência ou a responsabilidade de alguém.', 'Reiki é uma prática moderna, não tratada pelos textos antigos. A Igreja adverte contra atribuir poder espiritual ou cura a uma energia impessoal; cuidados de saúde devem recorrer a profissionais qualificados, e práticas de relaxamento não substituem tratamento médico.'],
                     scripture: 'Deuteronômio 18, 10-12; Isaías 8, 19; Atos 19, 18-20.',
                     patristic: 'Tertuliano, Sobre a idolatria 9 (século III), critica a astrologia e práticas divinatórias de seu contexto; ele não tratou do Reiki, que surgiu muitos séculos depois.',
                     magisterium: 'CIC 2110-2117; Conferência dos Bispos Católicos dos Estados Unidos, Guidelines for Evaluating Reiki as an Alternative Therapy (2009).',
@@ -1371,28 +1383,94 @@ router.get('/:id', (req, res) => {
                 },
                 {
                     id: 'reencarnacao',
-                    question: 'Como a Igreja enxerga a reencarnação?',
-                    keywords: 'reencarnação ressurreição vida após morte karma',
-                    shortAnswer: ['A reencarnação não faz parte da fé cristã. A Igreja professa uma única vida terrena, seguida do juízo, e espera a ressurreição da pessoa inteira, corpo e alma, por obra de Deus.', 'A esperança cristã não é retornar em outra vida para completar um ciclo, mas ser ressuscitado e viver em comunhão com Deus. Essa diferença também orienta a maneira de compreender sofrimento, liberdade e responsabilidade.'],
-                    scripture: 'Hebreus 9, 27; 1 Coríntios 15, 12-22; João 5, 28-29.',
+                    question: 'A reencarnação existe? O que a Igreja ensina sobre a comunicação com quem morreu?',
+                    keywords: 'reencarnação espiritismo mortos espíritos comunicação necromancia ressurreição vida após morte karma',
+                    shortAnswer: ['A reencarnação não faz parte da fé cristã: a Igreja professa uma vida terrena, seguida do juízo, e espera a ressurreição da pessoa inteira, corpo e alma. A esperança não é retornar em outra vida, mas viver em comunhão com Deus.', 'A Igreja distingue a oração pelos falecidos e a comunhão dos santos da tentativa de evocar ou consultar os mortos, prática que rejeita. A saudade e a lembrança de quem morreu não são, por si, uma tentativa de comunicação espiritual.'],
+                    scripture: 'Hebreus 9, 27; 1 Coríntios 15, 12-22; Deuteronômio 18, 10-12; 2 Macabeus 12, 44-46.',
                     patristic: 'Tertuliano, Sobre a ressurreição da carne 1-2 (século III), defende a ressurreição corporal contra concepções que a negavam.',
-                    magisterium: 'CIC 988-1019, especialmente 1013.',
+                    magisterium: 'CIC 988-1019, especialmente 1013; CIC 2116-2117.',
                     quote: 'Aos homens está ordenado morrer uma só vez.',
                     quoteSource: 'Hebreus 9, 27',
                     module: 'credo'
                 },
                 {
                     id: 'possessao-exorcismo',
-                    question: 'Qual é a visão católica sobre possessão e exorcismo?',
+                    question: 'Qual é a visão católica sobre a ação do demônio, a possessão e o exorcismo?',
                     keywords: 'possessão exorcismo demônio padre psiquiátrica psicológica saúde mental',
-                    shortAnswer: ['A Igreja admite o exorcismo como oração litúrgica excepcional, mas exige prudência rigorosa. O exorcismo maior só pode ser realizado por sacerdote com licença expressa do bispo; não é um substituto para avaliação e cuidado médico ou psicológico.', 'Sintomas incomuns não provam possessão. Antes de qualquer rito, devem ser investigadas causas clínicas e psicológicas; a pessoa e sua família precisam de proteção, respeito, consentimento e acompanhamento responsável.'],
+                    shortAnswer: ['A fé católica reconhece a existência do demônio e a realidade da tentação, mas não atribui automaticamente doenças, conflitos ou sofrimento à ação demoníaca. O exorcismo maior é uma oração litúrgica excepcional e só pode ser realizado por sacerdote com licença expressa do bispo.', 'Sintomas incomuns não provam possessão. A Igreja exige discernimento cuidadoso e avaliação médica e psicológica; a pessoa e sua família precisam de proteção, respeito, consentimento e acompanhamento responsável. O exorcismo nunca substitui cuidados de saúde.'],
                     scripture: 'Marcos 1, 23-27; Marcos 9, 14-29; Lucas 10, 17-20.',
                     patristic: 'Justino Mártir, Primeira Apologia 6 (século II), menciona orações cristãs de libertação; o discernimento pastoral atual não pode ser substituído por relatos antigos.',
                     magisterium: 'CIC 1673; Código de Direito Canônico, cân. 1172; Ritual de Exorcismos e orações relacionadas (1999).',
                     quote: 'Em meu nome expulsarão demônios.',
                     quoteSource: 'Marcos 16, 17',
                     module: 'oracao'
-                }
+                },
+                ...[
+                    createFaqEntry('sinal-cruz', 'Por que os católicos fazem o Sinal da Cruz e o que ele significa?', 'sinal da cruz gesto trindade cruz começo oração', [
+                        'O Sinal da Cruz é uma profissão breve da fé na Santíssima Trindade e uma lembrança da Paixão de Cristo. Ao traçá-lo sobre o corpo, o cristão recorda que pertence a Cristo pelo Batismo.',
+                        'Não é gesto mágico nem garantia automática de proteção: é oração corporal que expressa a fé e acompanha a vida litúrgica. Pode ser feito com reverência ao iniciar e concluir uma oração.'
+                    ], 'Mateus 28, 19; Gálatas 6, 14; 1 Coríntios 1, 18.', 'Tertuliano, De corona 3 (início do século III), testemunha o costume cristão de traçar o sinal da cruz na fronte em atos cotidianos.', 'CIC 1235 e 2157.', 'Ide, pois, e ensinai a todas as nações, batizando-as em nome do Pai, do Filho e do Espírito Santo.', 'Mateus 28, 19', 'credo'),
+                    createFaqEntry('domingo-dia-senhor', 'Por que o dia de Missa e descanso é o domingo e não o sábado?', 'domingo sábado dia do Senhor descanso missa sabbath', [
+                        'O domingo é celebrado pelos cristãos como o Dia do Senhor porque recorda a Ressurreição de Jesus, ocorrida no primeiro dia da semana. A Missa dominical reúne a comunidade para a Eucaristia e a escuta da Palavra.',
+                        'O domingo não é uma rejeição do povo judeu nem da importância bíblica do sábado. Para os cristãos, ele celebra a nova criação em Cristo e inclui descanso, família, culto e cuidado dos necessitados.'
+                    ], 'Marcos 16, 2; Atos 20, 7; 1 Coríntios 16, 2; Apocalipse 1, 10.', 'A Didaqué 14 (fim do século I ou início do II) orienta a reunião no Dia do Senhor; Justino, Primeira Apologia 67 (século II), descreve a assembleia cristã dominical.', 'CIC 2174-2188.', 'Este é o dia que o Senhor fez: exultemos e alegremo-nos nele.', 'Salmo 118, 24', 'mandamentos'),
+                    createFaqEntry('sacramentais-amuletos', 'Para que servem água benta, medalhas e terço? Funcionam como amuletos?', 'água benta medalhas terço sacramentais amuleto magia', [
+                        'Sacramentais são sinais sagrados instituídos pela Igreja que dispõem a pessoa para acolher a graça e santificam situações da vida. A água benta recorda o Batismo; medalhas e o terço podem favorecer a oração e a memória da fé.',
+                        'Eles não agem como amuletos nem obrigam Deus a conceder algo. Usá-los com superstição, como se tivessem poder automático, contradiz seu sentido; o essencial é a fé, a oração e a vida cristã.'
+                    ], 'Números 21, 8-9; Atos 19, 11-12; Tiago 5, 14-16.', 'A Didaqué 3, 4 (fim do século I ou início do II) adverte contra a magia; sacramentais como medalhas e práticas atuais desenvolveram-se posteriormente na vida da Igreja.', 'CIC 1667-1679 e 2111.', 'Não terás outros deuses diante de mim.', 'Êxodo 20, 3', 'sacramentos'),
+                    createFaqEntry('simbolos-missa', 'Por que a Igreja usa velas, incenso, imagens e vestimentas especiais na Missa?', 'velas incenso imagens vestimentas símbolos liturgia missa', [
+                        'A liturgia usa sinais visíveis para envolver o corpo e os sentidos na oração: a luz pode recordar Cristo, o incenso expressa honra e oração, as vestes indicam o serviço litúrgico e as imagens remetem às pessoas e mistérios representados.',
+                        'Esses sinais não são decoração indispensável nem objetos de adoração. Seu uso segue livros litúrgicos e tradições legítimas; o centro da Missa é Cristo e a celebração de sua Páscoa.'
+                    ], 'Êxodo 25, 18-20; Salmo 141, 2; Apocalipse 8, 3-4.', 'Justino, Primeira Apologia 65-67 (século II), descreve uma celebração cristã dominical estruturada; os detalhes de velas, incenso e vestes tiveram desenvolvimento histórico posterior.', 'CIC 1145-1162 e 1179-1186; Instrução Geral do Missal Romano 335-347.', 'Suba a minha oração como incenso à tua presença.', 'Salmo 141, 2', 'sacramentos'),
+                    createFaqEntry('religiao-organizada', 'Preciso ter uma religião organizada ou basta crer em Deus e ser uma boa pessoa?', 'religião organizada igreja crer em Deus boa pessoa comunidade', [
+                        'A fé cristã não reduz a salvação a pertencer formalmente a uma instituição, nem ensina que boas obras comprem a graça. A pessoa é chamada a buscar a verdade, amar a Deus e ao próximo e responder à graça recebida.',
+                        'Ao mesmo tempo, Jesus reúne discípulos numa comunidade, e a vida cristã é alimentada pela Palavra, pelos sacramentos e pelo serviço comum. A Igreja é caminho ordinário de vida cristã, não motivo para desprezar quem está fora dela.'
+                    ], 'Mateus 22, 37-40; Hebreus 10, 24-25; Tiago 2, 14-17.', 'Justino, Primeira Apologia 67 (século II), descreve a oração, a Eucaristia e a partilha como práticas da comunidade cristã reunida.', 'CIC 27-30, 44-45 e 836-838.', 'Amarás o Senhor teu Deus e o teu próximo como a ti mesmo.', 'Mateus 22, 37-39', 'credo'),
+                    createFaqEntry('salvacao-nao-catolicos', 'Quem não é católico ou não conhece a Igreja pode ir para o Céu?', 'salvação não católico outras religiões ignorância invencível céu', [
+                        'A Igreja ensina que toda salvação vem de Cristo e está relacionada, de modo conhecido por Deus, à Igreja. Quem, sem culpa própria, não conhece o Evangelho nem a Igreja, mas busca sinceramente a verdade e procura fazer o bem segundo a consciência, pode alcançar a salvação pela graça.',
+                        'Isso não significa que todas as religiões sejam iguais ou que a missão cristã seja desnecessária. Também não cabe a nós declarar o destino eterno de uma pessoa: o juízo pertence a Deus, que conhece cada consciência.'
+                    ], '1 Timóteo 2, 3-6; Atos 10, 34-35; Romanos 2, 14-16.', 'Justino, Primeira Apologia 46 (século II), fala de pessoas que viveram segundo o Logos antes de conhecer Cristo; essa reflexão antiga não substitui a formulação posterior do Magistério.', 'CIC 846-848; Lumen gentium 14-16.', 'Deus quer que todos sejam salvos e cheguem ao conhecimento da verdade.', '1 Timóteo 2, 4', 'credo'),
+                    createFaqEntry('diferencas-catolicos-evangelicos', 'Qual é a diferença fundamental entre a Igreja Católica e as denominações evangélicas?', 'diferenças católicos evangélicos protestantes autoridade sacramentos', [
+                        '“Evangélicas” reúne comunidades diversas. Muitas partilham com os católicos a fé na Trindade, em Jesus Cristo e na Bíblia; as diferenças variam, mas costumam envolver autoridade da Igreja e da Tradição, número e compreensão dos sacramentos e ministério ordenado.',
+                        'O diálogo católico reconhece elementos de santificação e verdade em outras comunidades cristãs. É melhor comparar uma doutrina concreta e a comunidade específica, sem tratar todos os evangélicos como se ensinassem exatamente o mesmo.'
+                    ], 'João 17, 20-23; Efésios 4, 4-6; 2 Tessalonicenses 2, 15.', 'Ireneu de Lião, Contra as Heresias III, 3-4 (século II), descreve a transmissão da fé apostólica nas Igrejas; as divisões confessionais atuais surgiram muitos séculos depois.', 'CIC 817-822; Unitatis redintegratio 3 e 11.', 'Que todos sejam um.', 'João 17, 21', 'credo'),
+                    createFaqEntry('nome-igreja-catolica', 'Por que a Igreja é chamada de Católica, Apostólica e Romana?', 'católica apostólica romana nome origem igreja universal', [
+                        'Católica significa universal: a Igreja anuncia Cristo a todos e guarda a plenitude da fé. Apostólica indica sua origem nos Apóstolos e a continuidade de sua missão e ensinamento.',
+                        'Romana identifica a comunhão com a Igreja de Roma e seu bispo, o Papa, no serviço de unidade. Não significa que a Igreja seja restrita a uma etnia, nacionalidade ou cultura romana.'
+                    ], 'Mateus 16, 18-19; Atos 1, 8; Apocalipse 7, 9.', 'Inácio de Antioquia, Carta aos Esmirnenses 8, 2 (início do século II), é um dos primeiros testemunhos escritos do uso da expressão “Igreja Católica”.', 'CIC 830-856 e 880-896.', 'Onde está Cristo Jesus, aí está a Igreja Católica.', 'Inácio de Antioquia, Carta aos Esmirnenses 8, 2', 'credo'),
+                    createFaqEntry('batismo-infantil', 'Por que batizar bebês se eles ainda não podem escolher a própria fé?', 'batismo infantil bebês escolha fé pecado original pais padrinhos', [
+                        'O Batismo é dom de Deus e início da vida cristã, não prêmio por uma escolha já plenamente consciente. A Igreja batiza crianças na fé da comunidade; pais e padrinhos assumem o compromisso de ajudá-las a conhecer e viver essa fé.',
+                        'Quando crescer, a pessoa poderá acolher livremente o dom recebido. A preparação dos pais e o acompanhamento da comunidade são importantes para que o Batismo não fique isolado da vida cristã.'
+                    ], 'Marcos 10, 13-16; Atos 2, 38-39; Colossenses 2, 11-12.', 'Orígenes, Homilias sobre o Levítico 8, 3 (século III), testemunha o Batismo de crianças como prática recebida na Igreja.', 'CIC 1250-1255.', 'Deixai vir a mim as crianças.', 'Marcos 10, 14', 'sacramentos'),
+                    createFaqEntry('confissao-padre', 'Por que confessar meus pecados ao padre e não só a Deus em meu quarto?', 'confessar padre confissão direto com Deus pecado sacerdote absolvição', [
+                        'A oração pessoal e o arrependimento diante de Deus são essenciais. No sacramento da Reconciliação, porém, Cristo confiou à Igreja um ministério de perdão: o sacerdote escuta e pronuncia a absolvição em nome de Cristo e da Igreja.',
+                        'A confissão não é contar a um homem para que ele substitua Deus; é receber sacramentalmente o perdão e a reconciliação. A Igreja recomenda confessar os pecados graves e prevê preparação com exame de consciência e contrição.'
+                    ], 'João 20, 22-23; Tiago 5, 16; 2 Coríntios 5, 18-20.', 'Orígenes, Homilias sobre o Levítico 2, 4 (século III), descreve a confissão ao sacerdote como parte do cuidado espiritual da comunidade.', 'CIC 1441-1442, 1455-1458.', 'A quem perdoardes os pecados, ser-lhes-ão perdoados.', 'João 20, 23', 'sacramentos'),
+                    createFaqEntry('comunhao-pecado-grave', 'O que acontece se alguém comungar estando em pecado grave?', 'comungar comunhão pecado mortal grave eucaristia confissão', [
+                        'A Igreja orienta que quem tem consciência de pecado grave não receba a Comunhão antes da absolvição sacramental, salvo a exceção estrita prevista no direito canônico quando há grave razão, não é possível confessar e existe contrição perfeita com propósito de confessar-se quanto antes.',
+                        'Isso não é convite ao desespero nem julgamento sobre outras pessoas. Quem está em dúvida pode conversar reservadamente com um sacerdote; ninguém deve ser exposto ou tratado com desprezo.'
+                    ], '1 Coríntios 11, 27-29; Salmo 32, 1-5.', 'Cipriano de Cartago, A queda 15-16 (século III), aborda pastoralmente a recepção da Eucaristia por cristãos que haviam falhado durante a perseguição.', 'CIC 1385 e 1457; Código de Direito Canônico, cân. 916.', 'Examine-se cada um a si mesmo e, assim, coma do pão e beba do cálice.', '1 Coríntios 11, 28', 'sacramentos'),
+                    createFaqEntry('titulo-sacerdotal-pai', 'Por que chamamos o sacerdote de “Padre” se Jesus disse para não chamar ninguém de pai?', 'padre pai sacerdote Mateus 23 pai espiritual título', [
+                        'Em Mateus 23, Jesus critica a busca de títulos que exalta pessoas e ocupa o lugar de Deus. A própria Bíblia usa “pai” em sentido familiar e espiritual, sem atribuir a alguém a paternidade absoluta que pertence a Deus.',
+                        '“Padre” é um tratamento pastoral tradicional para o sacerdote, cuja missão deve ser serviço, não domínio. O título não é obrigatório em toda situação e nunca torna o sacerdote infalível ou acima de correção.'
+                    ], 'Mateus 23, 8-12; 1 Coríntios 4, 14-16; Efésios 3, 14-15.', 'Clemente de Roma, Primeira Carta aos Coríntios 21 e 42 (fim do século I), testemunha a linguagem de cuidado e serviço dos ministros; Paulo já usa a imagem da paternidade espiritual em 1 Coríntios 4, 15.', 'CIC 1548; Presbyterorum ordinis 2 e 9.', 'Um só é o vosso Pai, aquele que está nos céus.', 'Mateus 23, 9', 'sacramentos'),
+                    createFaqEntry('pecado-mortal-venial', 'Qual é a diferença prática entre pecado mortal e pecado venial?', 'pecado mortal venial matéria grave consentimento conhecimento confissão', [
+                        'Para haver pecado mortal, precisam estar presentes juntos matéria grave, pleno conhecimento e consentimento deliberado. Se falta uma dessas condições, a responsabilidade pode ser menor; isso não transforma o mal em bem nem autoriza julgar a consciência alheia.',
+                        'O pecado venial fere a caridade, mas não rompe a amizade com Deus. Em qualquer caso, a resposta cristã é conversão, reparação quando possível e confiança na misericórdia, não escrúpulo ou indiferença.'
+                    ], '1 João 5, 16-17; Tiago 1, 14-15; Lucas 18, 13-14.', 'Agostinho, Enchiridion 64-65 (século V), distingue pecados que ferem a vida cristã sem destruí-la; a formulação técnica posterior requer os critérios ensinados pelo Catecismo.', 'CIC 1854-1864, especialmente 1857-1860.', 'Se reconhecemos os nossos pecados, Deus é fiel e justo para nos perdoar.', '1 João 1, 9', 'mandamentos'),
+                    createFaqEntry('problema-do-mal', 'Se Deus é bom e todo-poderoso, por que permite doenças, dores e tragédias?', 'problema do mal sofrimento doença tragédia Deus bom poderoso', [
+                        'A fé não oferece uma explicação simples para cada sofrimento. O mal não é apresentado como algo criado ou querido por Deus; envolve a liberdade humana, a fragilidade da criação e causas que muitas vezes não compreendemos.',
+                        'Cristãos creem que Deus não abandona quem sofre: Cristo participa da dor humana e a Ressurreição promete que o mal não terá a última palavra. Isso não substitui tratamento, justiça, luto ou ajuda profissional.'
+                    ], 'Jó 1-2; João 9, 1-3; Romanos 8, 18-39.', 'Agostinho, Enchiridion 11 (século V), reflete sobre a permissão do mal sem atribuí-lo à bondade criadora de Deus; sua resposta não pretende explicar todo sofrimento individual.', 'CIC 309-324 e 1500-1505.', 'O Senhor está perto dos que têm o coração ferido.', 'Salmo 34, 19', 'credo'),
+                    createFaqEntry('oracao-nao-atendida', 'Por que parece que Deus não ouve ou não responde às minhas orações?', 'oração não atendida silêncio de Deus pedido resposta espera', [
+                        'A oração não é uma fórmula para obter o resultado desejado. Os Salmos mostram que é legítimo lamentar e perguntar; Jesus também rezou no Getsêmani. A resposta pode não ser imediata ou assumir uma forma que não esperávamos.',
+                        'Perseverar não significa negar a dor nem deixar de buscar ajuda. É possível pedir apoio à comunidade, a um orientador espiritual ou a profissionais, enquanto se continua a rezar com honestidade.'
+                    ], 'Salmo 13; Marcos 14, 32-36; 2 Coríntios 12, 7-10.', 'Agostinho, Carta 130 a Proba, 8, 17 (século V), ensina que a oração também educa o desejo e a esperança; isso não diminui a dor de quem espera.', 'CIC 2734-2741 e 2629-2633.', 'Meu Deus, meu Deus, por que me abandonaste?', 'Salmo 22, 2', 'oracao'),
+                    createFaqEntry('conteudo-secular', 'O católico pode ouvir músicas, assistir a filmes ou consumir conteúdos não religiosos?', 'música filmes secular entretenimento mídia conteúdo cultura', [
+                        'Sim. A fé católica não exige que toda obra cultural seja explicitamente religiosa. Música, cinema e literatura podem revelar beleza e verdade mesmo fora de um contexto de culto.',
+                        'O discernimento considera conteúdo, contexto, efeitos sobre a consciência e respeito à dignidade humana. Não é preciso consumir tudo: é legítimo escolher limites e conversar sobre obras difíceis sem reduzir cultura a uma lista de proibições.'
+                    ], 'Filipenses 4, 8; 1 Tessalonicenses 5, 21; 1 Coríntios 10, 23-24.', 'Basílio de Cesareia, Discurso aos jovens sobre como tirar proveito das letras gregas (século IV), recomenda discernir e acolher o que conduz ao bem na cultura de seu tempo.', 'CIC 2500-2503 e 2525-2527; Inter mirifica 9-10.', 'Tudo o que é verdadeiro, nobre, justo e puro, levai-o em consideração.', 'Filipenses 4, 8', 'mandamentos')
+                ]
             ]
         },
         'dons-espirito-santo': {
@@ -1639,6 +1717,18 @@ router.get('/:id', (req, res) => {
             </section>
         `).join(''));
     } else if (Array.isArray(prayer.faq)) {
+        const faqIndexGroups = [
+            { title: 'Práticas, símbolos e tradições', ids: ['sinal-cruz', 'domingo-dia-senhor', 'sacramentais-amuletos', 'simbolos-missa'] },
+            { title: 'Igreja, culto e salvação', ids: ['veneracao-imagens', 'intercessao-santos', 'purgatorio', 'papado-pedro', 'religiao-organizada', 'salvacao-nao-catolicos', 'diferencas-catolicos-evangelicos', 'nome-igreja-catolica'] },
+            { title: 'Bíblia e Tradição', ids: ['sola-scriptura', 'canon-73-livros', 'escritura-tradicao-magisterio', 'violencia-antigo-testamento'] },
+            { title: 'Maria e revelações', ids: ['maria-mae-de-deus', 'irmaos-jesus', 'imaculada-conceicao', 'aparicoes-marianas'] },
+            { title: 'Sacramentos na prática', ids: ['sigilo-sacramental', 'eucaristia-presenca-real', 'batismo-infantil', 'confissao-padre', 'comunhao-pecado-grave', 'titulo-sacerdotal-pai'] },
+            { title: 'Moral, vida e família', ids: ['contracepcao-artificial', 'aborto-eutanasia', 'divorcio-nulidade', 'celibato-sacerdotal', 'pecado-mortal-venial'] },
+            { title: 'Fé, ciência e história', ids: ['evolucao-big-bang', 'fe-ciencia-razao', 'inquisicao-cruzadas', 'riquezas-vaticano', 'galileu'] },
+            { title: 'Espiritualidade', ids: ['ocultismo-reiki', 'reencarnacao', 'possessao-exorcismo'] },
+            { title: 'Sofrimento, oração e cultura', ids: ['problema-do-mal', 'oracao-nao-atendida', 'conteudo-secular'] }
+        ];
+        const faqById = new Map(prayer.faq.map(item => [item.id, item]));
         contentParts.push(`<p class="content-lead">${prayer.pt[0]}</p>`);
         contentParts.push(`
             <div class="faq-tools">
@@ -1650,36 +1740,57 @@ router.get('/:id', (req, res) => {
             </div>
             <p id="faq-empty" class="faq-empty" hidden>Nenhuma resposta encontrada. Tente outro termo.</p>
         `);
+        contentParts.push(`
+            <nav class="faq-index" aria-labelledby="faq-index-heading">
+                <h2 id="faq-index-heading">Índice de dúvidas</h2>
+                <div class="faq-index-grid">
+                    ${faqIndexGroups.map(group => `
+                        <section class="faq-index-group">
+                            <h3>${group.title}</h3>
+                            <ul>
+                                ${group.ids.map(faqId => {
+                                    const item = faqById.get(faqId);
+                                    return item ? `<li><a class="faq-index-link" href="#faq-${item.id}" data-faq-index-target="${item.id}">${item.question}</a></li>` : '';
+                                }).join('')}
+                            </ul>
+                        </section>
+                    `).join('')}
+                </div>
+            </nav>
+        `);
         contentParts.push(prayer.faq.map(item => `
-            <article class="faq-item" id="faq-${item.id}" data-faq-search="${[item.question, item.keywords, ...item.shortAnswer, item.scripture, item.patristic, item.magisterium].join(' ').toLocaleLowerCase('pt-BR')}" tabindex="-1">
-                <div class="faq-objection">
+            <details class="faq-item" id="faq-${item.id}" data-faq-search="${[item.question, item.keywords, ...item.shortAnswer, item.scripture, item.patristic, item.magisterium].join(' ').toLocaleLowerCase('pt-BR')}">
+                <summary class="faq-summary">
+                    <span class="faq-summary-question">${item.question}</span>
+                    <span class="faq-summary-hint" aria-hidden="true"></span>
+                </summary>
+                <div class="faq-detail-content">
                     <p class="faq-label">Objeção / dúvida comum</p>
-                    <h3>${item.question}</h3>
+                    <div class="faq-answer">
+                        ${item.shortAnswer.map((paragraph, index) => `<p><strong>Resposta curta ${index + 1}</strong>${paragraph}</p>`).join('')}
+                    </div>
+                    <div class="faq-source-block">
+                        <h4>Fundamentação bíblica</h4>
+                        <p>${item.scripture}</p>
+                    </div>
+                    <div class="faq-source-block">
+                        <h4>Testemunho histórico-patrístico</h4>
+                        <p>${item.patristic}</p>
+                    </div>
+                    <div class="faq-source-block">
+                        <h4>Catecismo e Magistério</h4>
+                        <p>${item.magisterium}</p>
+                    </div>
+                    <figure class="faq-quote" id="faq-quote-${item.id}">
+                        <blockquote>“${item.quote}”</blockquote>
+                        <figcaption>${item.quoteSource}</figcaption>
+                    </figure>
+                    <div class="faq-actions">
+                        <button class="content-action copy-quote" type="button" data-quote-target="faq-quote-${item.id}">Copiar citação</button>
+                        <a href="/oracoes/sintese-catecismo#catechism-${item.module}" class="faq-crosslink">Aprofundar na síntese do Catecismo</a>
+                    </div>
                 </div>
-                <div class="faq-answer">
-                    ${item.shortAnswer.map((paragraph, index) => `<p><strong>Resposta curta ${index + 1}</strong>${paragraph}</p>`).join('')}
-                </div>
-                <div class="faq-source-block">
-                    <h4>Fundamentação bíblica</h4>
-                    <p>${item.scripture}</p>
-                </div>
-                <div class="faq-source-block">
-                    <h4>Testemunho histórico-patrístico</h4>
-                    <p>${item.patristic}</p>
-                </div>
-                <div class="faq-source-block">
-                    <h4>Catecismo e Magistério</h4>
-                    <p>${item.magisterium}</p>
-                </div>
-                <figure class="faq-quote" id="faq-quote-${item.id}">
-                    <blockquote>“${item.quote}”</blockquote>
-                    <figcaption>${item.quoteSource}</figcaption>
-                </figure>
-                <div class="faq-actions">
-                    <button class="content-action copy-quote" type="button" data-quote-target="faq-quote-${item.id}">Copiar citação</button>
-                    <a href="/oracoes/sintese-catecismo#catechism-${item.module}" class="faq-crosslink">Aprofundar na síntese do Catecismo</a>
-                </div>
-            </article>
+            </details>
         `).join(''));
     } else if (versePrayerIds.has(id)) {
         const verses = prayer.pt.map((paragraph, index) => {
@@ -1844,8 +1955,96 @@ router.get('/:id', (req, res) => {
                     border-top: 1px solid var(--accent-color);
                 }
                 .faq-item {
-                    scroll-margin-top: 24px;
-                    padding: 26px 0 30px;
+                    scroll-margin-top: 88px;
+                    margin: 0;
+                    padding: 0;
+                }
+                .faq-index {
+                    margin: 22px 0 34px;
+                    padding: 18px 0 22px;
+                    border-top: 2px solid var(--accent-color);
+                    border-bottom: 1px solid var(--accent-color);
+                }
+                .faq-index > h2 {
+                    margin: 0 0 16px;
+                    color: var(--primary-color);
+                    font-size: 1.55rem;
+                }
+                .faq-index-grid {
+                    display: grid;
+                    grid-template-columns: repeat(2, minmax(0, 1fr));
+                    gap: 18px 28px;
+                }
+                .faq-index-group h3 {
+                    margin: 0 0 7px;
+                    color: var(--primary-color);
+                    font-size: 1.08rem;
+                }
+                .faq-index-group ul {
+                    margin: 0;
+                    padding-left: 20px;
+                }
+                .faq-index-group li {
+                    margin: 0 0 4px;
+                    line-height: 1.4;
+                }
+                .faq-index-link {
+                    display: inline-block;
+                    scroll-margin-top: 100px;
+                    color: var(--text-color);
+                    text-decoration-thickness: 1px;
+                    text-underline-offset: 2px;
+                }
+                .faq-index-link:hover, .faq-index-link:focus-visible {
+                    color: var(--primary-color);
+                }
+                .faq-summary {
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    gap: 14px;
+                    padding: 17px 8px;
+                    border-top: 1px solid var(--accent-color);
+                    color: var(--primary-color);
+                    cursor: pointer;
+                    list-style: none;
+                }
+                .faq-summary::-webkit-details-marker {
+                    display: none;
+                }
+                .faq-summary-question {
+                    font-size: 1.12rem;
+                    font-weight: 700;
+                    line-height: 1.4;
+                }
+                .faq-summary-hint {
+                    flex: 0 0 30px;
+                    width: 30px;
+                    height: 30px;
+                    border: 1px solid var(--accent-color);
+                    border-radius: 50%;
+                    color: var(--primary-color);
+                    font-size: 0;
+                    text-align: center;
+                }
+                .faq-summary-hint::before {
+                    content: '+';
+                    font-size: 1.25rem;
+                    line-height: 27px;
+                }
+                .faq-item[open] .faq-summary-hint::before {
+                    content: '−';
+                }
+                .faq-detail-content {
+                    padding: 0 8px 25px;
+                }
+                .faq-item[open] .faq-summary {
+                    padding-bottom: 12px;
+                }
+                .faq-item[open] .faq-summary-question {
+                    text-decoration: underline;
+                    text-decoration-thickness: 1px;
+                    text-underline-offset: 4px;
                 }
                 .faq-tools {
                     position: relative;
@@ -2192,6 +2391,20 @@ router.get('/:id', (req, res) => {
                     .section-title {
                         font-size: 2.35rem;
                     }
+                    .faq-index-grid {
+                        grid-template-columns: 1fr;
+                        gap: 12px;
+                    }
+                    .faq-index {
+                        margin-top: 18px;
+                    }
+                    .faq-summary {
+                        gap: 10px;
+                        padding: 14px 4px;
+                    }
+                    .faq-summary-question {
+                        font-size: 1rem;
+                    }
                     .reading-grid {
                         grid-template-columns: 1fr;
                     }
@@ -2346,6 +2559,14 @@ router.get('/:id', (req, res) => {
                         faqCards.forEach(card => {
                             card.hidden = !matches.includes(card);
                         });
+                        if (query && matches.length === 1) matches[0].open = true;
+                        document.querySelectorAll('.faq-index-link').forEach(link => {
+                            const target = document.getElementById('faq-' + link.dataset.faqIndexTarget);
+                            link.parentElement.hidden = target.hidden;
+                        });
+                        document.querySelectorAll('.faq-index-group').forEach(group => {
+                            group.hidden = ![...group.querySelectorAll('.faq-index-link')].some(link => !link.parentElement.hidden);
+                        });
                         document.getElementById('faq-empty').hidden = matches.length > 0;
                         document.getElementById('faq-result-count').textContent = query
                             ? matches.length + ' ' + (matches.length === 1 ? 'resposta encontrada' : 'respostas encontradas')
@@ -2357,8 +2578,8 @@ router.get('/:id', (req, res) => {
                             suggestion.type = 'button';
                             suggestion.className = 'faq-suggestion';
                             suggestion.dataset.faqTarget = card.id;
-                            suggestion.dataset.faqQuestion = card.querySelector('h3').textContent;
-                            suggestion.textContent = card.querySelector('h3').textContent;
+                            suggestion.dataset.faqQuestion = card.querySelector('.faq-summary-question').textContent;
+                            suggestion.textContent = card.querySelector('.faq-summary-question').textContent;
                             faqSuggestions.appendChild(suggestion);
                         });
                         faqSuggestions.hidden = !query || matches.length === 0;
@@ -2371,9 +2592,25 @@ router.get('/:id', (req, res) => {
                         faqSearch.value = suggestion.dataset.faqQuestion;
                         updateFaqSearch();
                         const target = document.getElementById(suggestion.dataset.faqTarget);
+                        target.open = true;
                         target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        target.focus({ preventScroll: true });
+                        target.querySelector('summary').focus({ preventScroll: true });
                     });
+
+                    document.querySelector('.faq-index').addEventListener('click', event => {
+                        const link = event.target.closest('[data-faq-index-target]');
+                        if (link) document.getElementById('faq-' + link.dataset.faqIndexTarget).open = true;
+                    });
+
+                    function openFaqFromHash() {
+                        const targetId = location.hash.slice(1);
+                        if (!targetId) return;
+                        const target = document.getElementById(targetId);
+                        if (target && target.matches('.faq-item')) target.open = true;
+                    }
+
+                    window.addEventListener('hashchange', openFaqFromHash);
+                    openFaqFromHash();
                     updateFaqSearch();
                 }
 
