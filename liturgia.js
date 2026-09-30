@@ -238,7 +238,7 @@ router.get('/', async (req, res) => {
             <style>
                 ${BASE_STYLES}
                 body {
-                    font-family: "Times New Roman", serif !important;
+                    font-family: var(--site-font-family) !important;
                     background: var(--bg-color) !important;
                     min-height: 100vh;
                     padding: 0 0 60px;
@@ -316,7 +316,7 @@ router.get('/', async (req, res) => {
                 .liturgia-externa h3,
                 .liturgia-externa h4 {
                     color: var(--primary-color);
-                    font-family: Georgia, 'Times New Roman', serif;
+                    font-family: var(--site-font-family);
                     margin-top: 1.2em;
                     margin-bottom: 0.5em;
                 }
@@ -341,7 +341,7 @@ router.get('/', async (req, res) => {
                 .liturgia-externa span,
                 .liturgia-externa div,
                 .liturgia-externa button {
-                    font-family: Georgia, 'Times New Roman', serif;
+                    font-family: var(--site-font-family);
                     line-height: 1.7;
                 }
                 .liturgia-externa a {

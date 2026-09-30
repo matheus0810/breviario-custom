@@ -489,6 +489,7 @@ const PORTUGUESE_KEYWORDS = [
 
 const BASE_STYLES = `
     :root {
+        --site-font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
         --primary-color: #8B4513;
         --secondary-color: #A0522D;
         --accent-color: #CD853F;
@@ -504,7 +505,7 @@ const BASE_STYLES = `
     }
 
     body {
-        font-family: 'Times New Roman', serif;
+        font-family: var(--site-font-family);
         line-height: 1.6;
         color: var(--text-color);
         background: var(--bg-color);

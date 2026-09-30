@@ -5,6 +5,7 @@ const router = express.Router();
 // Importar estilos base (assumindo que será passado do server principal)
 const BASE_STYLES = `
     :root {
+        --site-font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
         --primary-color: #8B4513;
         --secondary-color: #A0522D;
         --accent-color: #CD853F;
@@ -20,7 +21,7 @@ const BASE_STYLES = `
     }
 
     body {
-        font-family: 'Times New Roman', serif;
+        font-family: var(--site-font-family);
         line-height: 1.6;
         color: var(--text-color);
         background: var(--bg-color);
@@ -172,7 +173,7 @@ router.get('/', async (req, res) => {
                 .liturgia-info-label { font-size:12px; color:var(--secondary-color); text-transform:uppercase; margin-bottom:4px; }
                 .liturgia-info-value { font-size:16px; color:var(--primary-color); font-weight:600; }
                 body {
-                    font-family: "Times New Roman", serif !important;
+                    font-family: var(--site-font-family) !important;
                     background: var(--bg-color) !important;
                     min-height: 100vh;
                     padding: 0 0 60px;

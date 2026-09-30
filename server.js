@@ -763,6 +763,7 @@ function carregarTextoOrdinario() {
 
 const BASE_STYLES = `
     :root {
+        --site-font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
         --bg-color: #f6efe6;
         --surface-color: #ffffff;
         --border-color: #e4d8c6;
@@ -777,7 +778,7 @@ const BASE_STYLES = `
     }
 
     body {
-        font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif !important;
+        font-family: var(--site-font-family) !important;
         background: var(--bg-color) !important;
         color: var(--text-color) !important;
         margin: 0;
@@ -1049,7 +1050,7 @@ app.get('/leituras', (req, res) => {
             <style>
                 ${BASE_STYLES}
                 body {
-                    font-family: "Times New Roman", serif !important;
+                    font-family: var(--site-font-family) !important;
                     background: var(--bg-color) !important;
                     min-height: 100vh;
                     padding: 0 0 60px;
@@ -2412,7 +2413,7 @@ app.get('*', async (req, res) => {
                 <title>Erro - Liturgia das Horas</title>
                 <style>
                     body {
-                        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+                        font-family: 'Palatino Linotype', 'Book Antiqua', Georgia, serif;
                         background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
                         margin: 0;
                         padding: 50px 20px;
